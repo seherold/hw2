@@ -303,6 +303,21 @@ TEST (dyn_array_data_size, NullArray) {
 *  DYN ARRAY SORT UNIT TEST CASES
 **/
 
+// NULL compare function
+
+TEST (dyn_array_sort, NullCompareFunction) {
+	dyn_array_t fakeArray = {
+        .capacity = 10,  
+        .size = 10,  
+        .data_size = sizeof(int),  
+        .array = malloc(10 * sizeof(int)),  
+        .destructor = NULL
+	};
+	memset(fakeArray.array, 0, 10 * sizeof(int));
+	EXPECT_EQ(false,dyn_array_sort(&fakeArray, NULL));
+	free(fakeArray.array);
+}
+
 
 
 
