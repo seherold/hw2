@@ -208,6 +208,101 @@ TEST (dyn_array_insert, NullObject) {
 /*
 *  DYN ARRAY ERASE UNIT TEST CASES
 **/
+TEST (dyn_array_erase, NullArray) {
+	size_t fakeIndex = 2;
+	EXPECT_EQ(NULL,dyn_array_erase(NULL, fakeIndex));
+}
+
+TEST (dyn_array_erase, NegIndex) {
+	dyn_array_t fakeArray = {
+        .capacity = 10,  
+        .size = 10,  
+        .data_size = sizeof(int),  
+        .array = malloc(10 * sizeof(int)),  
+        .destructor = NULL
+	};
+	memset(fakeArray.array, 0, 10 * sizeof(int));
+	EXPECT_EQ(NULL,dyn_array_erase(&fakeArray, -1));
+	free(fakeArray.array);
+}
+
+
+/*
+*  DYN ARRAY EXTRACT UNIT TEST CASES
+**/
+TEST (dyn_array_extract, NullArray) {
+	int fakeObject = 0;
+	size_t fakeIndex = 2;
+	EXPECT_EQ(false,dyn_array_extract(NULL, fakeIndex, (const void*)&fakeObject));
+}
+
+TEST (dyn_array_extract, NegIndex) {
+	dyn_array_t fakeArray = {
+        .capacity = 10,  
+        .size = 10,  
+        .data_size = sizeof(int),  
+        .array = malloc(10 * sizeof(int)),  
+        .destructor = NULL
+	};
+	memset(fakeArray.array, 0, 10 * sizeof(int));
+	int fakeObject = 0;
+	EXPECT_EQ(false,dyn_array_extract(&fakeArray, -1, (const void*)&fakeObject));
+	free(fakeArray.array);
+}
+
+TEST (dyn_array_extract, NullObject) {
+	dyn_array_t fakeArray = {
+        .capacity = 10,  
+        .size = 10,  
+        .data_size = sizeof(int),  
+        .array = malloc(10 * sizeof(int)),  
+        .destructor = NULL
+	};
+	memset(fakeArray.array, 0, 10 * sizeof(int));
+	size_t fakeIndex = 2;
+	EXPECT_EQ(false,dyn_array_extract(&fakeArray, fakeIndex, NULL));
+	free(fakeArray.array);
+}
+
+/*
+*  DYN ARRAY CLEAR UNIT TEST CASES
+**/
+
+
+/*
+*  DYN ARRAY EMPTY UNIT TEST CASES
+**/
+TEST (dyn_array_empty, NullArray) {
+	EXPECT_EQ(true,dyn_array_empty(NULL));
+}
+
+/*
+*  DYN ARRAY SIZE UNIT TEST CASES
+**/
+TEST (dyn_array_size, NullArray) {
+	EXPECT_EQ(0,dyn_array_size(NULL));
+}
+
+
+/*
+*  DYN ARRAY CAPACITY UNIT TEST CASES
+**/
+TEST (dyn_array_capacity, NullArray) {
+	EXPECT_EQ(0,dyn_array_capacity(NULL));
+}
+
+
+/*
+*  DYN ARRAY CAPACITY UNIT TEST CASES
+**/
+TEST (dyn_array_data_size, NullArray) {
+	EXPECT_EQ(0,dyn_array_data_size(NULL));
+}
+
+/*
+*  DYN ARRAY SORT UNIT TEST CASES
+**/
+
 
 
 
