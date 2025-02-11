@@ -55,7 +55,7 @@ bool dyn_shift_remove(dyn_array_t *const dyn_array, const size_t position, const
 ///
 dyn_array_t *dyn_array_create(const size_t capacity, const size_t data_type_size, void (*destruct_func)(void *)) 
 {
-	if (data_type_size && capacity <= DYN_MAX_CAPACITY) 
+	if (data_type_size && capacity <= DYN_MAX_CAPACITY) // if data_type_size != 0, and capacity <= DYN_MAX_CAPACITY
 	{
 		dyn_array_t *dyn_array = (dyn_array_t *) malloc(sizeof(dyn_array_t));
 		if (dyn_array) 
@@ -63,7 +63,7 @@ dyn_array_t *dyn_array_create(const size_t capacity, const size_t data_type_size
 			// would have inf loop if requested size was between DYN_MAX_CAPACITY
 			// and SIZE_MAX
 			size_t actual_capacity = 16;
-			while (capacity > actual_capacity) 
+			while (capacity > actual_capacity)
 			{
 				actual_capacity <<= 1;
 			}
@@ -73,7 +73,7 @@ dyn_array_t *dyn_array_create(const size_t capacity, const size_t data_type_size
 			// dyn_array->data_size = data_type_size;
 			// dyn_array->destructor = destruct_func;
 
-			// dyn_array->array = malloc(data_type_size * actual_capacity);
+			dyn_array->array = malloc(data_type_size * actual_capacity);
 
 			// I had an idea... and it compiles
 			// const members of a malloc'd struct are so annoying

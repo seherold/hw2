@@ -17,6 +17,14 @@ extern "C"
 *  DYN ARRAY CREATE UNIT TEST CASES
 **/
 
+TEST (dyn_array_create, DataTypeSizeZero) {
+	EXPECT_EQ(NULL,dyn_array_create(10, 0, NULL));
+}
+
+TEST (dyn_array_create, CapacityTooLarge) {
+	EXPECT_EQ(NULL,dyn_array_create(DYN_MAX_CAPACITY + 1, sizeof(size_t), NULL));
+}
+
 /*
 *  DYN ARRAY IMPORT UNIT TEST CASES
 **/
@@ -37,10 +45,6 @@ extern "C"
 /*
 *  DYN ARRAY PUSH FRONT UNIT TEST CASES
 **/
-TEST (dyn_array_push_front, NullArray) {
-	int fakeObject = 0;
-	EXPECT_EQ(false,dyn_array_push_front(NULL, (const void*)&fakeObject));
-}
 
 // Other test case ideas
 // if size == 0
@@ -48,18 +52,18 @@ TEST (dyn_array_push_front, NullArray) {
 // if fakeArray.array == NULL
 // if no elements have been initialized in fakeArray
 
-/*TEST (dyn_array_push_front, NullObject) {
-	dyn_array_t fakeArray = {
-        .capacity = 10,  
-        .size = 10,  
-        .data_size = sizeof(int),  
-        .array = malloc(10 * sizeof(int)),  
-        .destructor = NULL
-	};
-	memset(fakeArray.array, 0, 10 * sizeof(int));
-	EXPECT_EQ(false,dyn_array_push_front(&fakeArray, NULL));
-	free(fakeArray.array);
-}*/
+
+TEST (dyn_array_push_front, NullArray) {
+	int fakeObject = 0;
+	EXPECT_EQ(false,dyn_array_push_front(NULL, &fakeObject));
+}
+
+TEST (dyn_array_push_front, NullObject) {
+	dyn_array_t* dynArrayPtr = dyn_array_create(10, sizeof(int), NULL);
+	EXPECT_EQ(false,dyn_array_push_front(dynArrayPtr, NULL));
+	free(dynArrayPtr->array);
+	free(dynArrayPtr);
+}
 
 
 /*
