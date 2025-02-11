@@ -26,7 +26,11 @@ void virtual_cpu(ProcessControlBlock_t *process_control_block)
 bool first_come_first_serve(dyn_array_t *ready_queue, ScheduleResult_t *result) 
 {
 
-	size_t numPCBs = ready_queue->size;
+	UNUSED(ready_queue);
+	UNUSED(result);
+	return false;
+
+	/*size_t numPCBs = ready_queue->size;
 	uint32_t burstTimes[numPCBs];
 
 	for (int i = 0; i < numPCBs; i++)
@@ -64,7 +68,7 @@ bool first_come_first_serve(dyn_array_t *ready_queue, ScheduleResult_t *result)
 	result->average_waiting_time = totalWaitingTime/numPCBs;
 	result->average_turnaround_time = totalTurnAroundTime/numPCBs;
 
-	return false;
+	return false;*/
 }
 
 // Runs the Shortest Job First Scheduling algorithm over the incoming ready_queue
@@ -110,6 +114,9 @@ bool round_robin(dyn_array_t *ready_queue, ScheduleResult_t *result, size_t quan
 // \return a populated dyn_array of ProcessControlBlocks if function ran successful else NULL for an error
 dyn_array_t *load_process_control_blocks(const char *input_file) 
 {
+	UNUSED(input_file);
+	return NULL;
+	/*
 	if (input_file == NULL)
 	{
 		return NULL;
@@ -161,7 +168,7 @@ dyn_array_t *load_process_control_blocks(const char *input_file)
 		}
 	}
     fclose(fptr);
-	return arrayOfPCBs;
+	return arrayOfPCBs;*/
 }
 
 
