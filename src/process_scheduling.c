@@ -115,8 +115,13 @@ dyn_array_t *load_process_control_blocks(const char *input_file)
 			return NULL;
 		}
 
-		dyn_array_push_back(arrayOfPCBs, &newPCB);
-		
+		if (dyn_array_push_back(arrayOfPCBs, &newPCB) == false) // error adding PCB
+		{
+			free(arrayOfPCBs->array);
+			free(arrayOfPCBs);
+			fclose(fptr);
+			return NULL;
+		}
 	}
     fclose(fptr);
 	return arrayOfPCBs;
