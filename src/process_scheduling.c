@@ -25,8 +25,45 @@ void virtual_cpu(ProcessControlBlock_t *process_control_block)
 // \return true if function ran successful else false for an error
 bool first_come_first_serve(dyn_array_t *ready_queue, ScheduleResult_t *result) 
 {
-	UNUSED(ready_queue);
-	UNUSED(result);
+
+	size_t numPCBs = ready_queue->size;
+	uint32_t burstTimes[numPCBs];
+
+	for (int i = 0; i < numPCBs; i++)
+	{
+		memcpy(burstTimes + i*uint32_t, ready_queue + i*uint32_t, sizeof(uint32_t));
+	}
+
+	uint32_t waitingTimes[numPCBs];
+
+	waitingTimes[0] = 0;
+
+	for (int i = 1; i < numPCBs; i++)
+	{
+		waitingTimes[i] = burstTimes[i-1] + waitingTimes[i-1];
+	}
+
+	
+	uint32_t turnAroundTimes[numPCBs];
+
+	for (int i = 0; i < numPCBs; i++)
+	{
+		turnAroundTimes[i] = waitingTimes[i] + burstTimes[i];
+	}
+
+	// find total times
+	uint32_t totalWaitingTime = 0;
+	uint32_t totalTurnAroundTime = 0;
+
+	for (int i = 0; i < numPCBs; i++)
+	{
+		totalWaitingTime += waitingTimes[i];
+		totalTurnAroundTime += turnAroundTimes[i];
+	}
+
+	result->average_waiting_time = totalWaitingTime/numPCBs;
+	result->average_turnaround_time = totalTurnAroundTime/numPCBs;
+
 	return false;
 }
 
