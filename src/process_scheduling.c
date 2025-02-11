@@ -67,11 +67,59 @@ bool round_robin(dyn_array_t *ready_queue, ScheduleResult_t *result, size_t quan
 }
 
 
-
+// Reads the PCB burst time values from the binary file into ProcessControlBlock_t remaining_burst_time field
+// for N number of PCB burst time stored in the file.
+// \param input_file the file containing the PCB burst times
+// \return a populated dyn_array of ProcessControlBlocks if function ran successful else NULL for an error
 dyn_array_t *load_process_control_blocks(const char *input_file) 
 {
-	UNUSED(input_file);
-	return NULL;
+	if (input_file == NULL)
+	{
+		return NULL;
+	}
+
+	FILE* fptr = fopen(input_file, "rb");
+
+	if (fptr == NULL) // error opening file
+	{
+		return NULL;
+	}
+
+	uint32_t numberOfPCBs;
+
+	if (fread(&numberOfPCBs, sizeof(uint32_t), 1, fptr) != 1) // error reading number of PCBs, first number in binary file
+	{
+		fclose(fptr);
+		return NULL;
+	}
+
+	dyn_array_t* arrayOfPCBs = dyn_array_create(numberOfPCBs, sizeof(ProcessControlBlock_t), NULL);
+
+	if (arrayOfPCBs == NULL)
+	{
+		fclose(fptr);
+		return NULL;
+	}
+
+	for (int i = 0; i < numberOfPCBs; i++)
+	{
+		ProcessControlBlock_t newPCB;
+
+		if (fread(&newPCB.remaining_burst_time, sizeof(uint32_t), 1, fptr) != 1 ||
+			fread(&newPCB.priority, sizeof(uint32_t), 1, fptr) != 1 ||
+			fread(&newPCB.arrival, sizeof(uint32_t), 1, fptr) != 1)
+		{
+			free(arrayOfPCBs->array);
+			free(arrayOfPCBs);
+			fclose(fptr);
+			return NULL;
+		}
+
+		dyn_array_push_back(arrayOfPCBs, &newPCB);
+		
+	}
+    fclose(fptr);
+	return arrayOfPCBs;
 }
 
 
