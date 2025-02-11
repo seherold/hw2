@@ -9,8 +9,6 @@
 #define RR "RR"
 #define SJF "SJF"
 
-//just added comment to see if github works
-
 // Add and comment your analysis code in this function.
 // THIS IS NOT FINISHED.
 int main(int argc, char **argv) 
