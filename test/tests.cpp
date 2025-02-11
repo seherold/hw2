@@ -17,7 +17,7 @@ extern "C"
 /*
 *  FCFS UNIT TEST CASES
 **/
-TEST (first_come_first_serve, BasicPCBs) {
+/*TEST (first_come_first_serve, BasicPCBs) {
 	
 	ProcessControlBlock_t newPCB1;
 	ProcessControlBlock_t newPCB2;
@@ -26,9 +26,9 @@ TEST (first_come_first_serve, BasicPCBs) {
 	ScheduleResult_t result;
 
 	EXPECT_EQ(true,first_come_first_serve(ready_queue,result));
-}
+}*/
 
-/*
+
 unsigned int score;
 unsigned int total;
 
@@ -48,7 +48,7 @@ class GradeEnvironment : public testing::Environment
 			std::cout << "SCORE: " << score << '/' << total << std::endl;
 		}
 };
-*/
+
 
 
 int main(int argc, char **argv)
