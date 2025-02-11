@@ -303,7 +303,7 @@ TEST (dyn_array_data_size, NullArray) {
 *  DYN ARRAY SORT UNIT TEST CASES
 **/
 
-// NULL compare function
+// NULL array, figure out how to make a fake compare function
 
 TEST (dyn_array_sort, NullCompareFunction) {
 	dyn_array_t fakeArray = {
@@ -318,6 +318,42 @@ TEST (dyn_array_sort, NullCompareFunction) {
 	free(fakeArray.array);
 }
 
+/*
+*  DYN ARRAY INSERT SORTED UNIT TEST CASES
+**/
+
+// NULL array, figure out how to make a fake compare function
+// NULL object, figure out how to make a fake compare function
+
+TEST (dyn_array_insert_sorted, NullCompareFunction) {
+	dyn_array_t fakeArray = {
+        .capacity = 10,  
+        .size = 10,  
+        .data_size = sizeof(int),  
+        .array = malloc(10 * sizeof(int)),  
+        .destructor = NULL
+	};
+	memset(fakeArray.array, 0, 10 * sizeof(int));
+	int fakeObject = 0;
+	EXPECT_EQ(false,dyn_array_insert_sorted(&fakeArray, (const void*)&fakeObject, NULL));
+	free(fakeArray.array);
+}
+
+/*
+*  DYN ARRAY FOR EACH UNIT TEST CASES
+**/
+
+/*
+*  DYN SHIFT INSERT INCREASE UNIT TEST CASES
+**/
+
+/*
+*  DYN SHIFT INSERT REMOVE UNIT TEST CASES
+**/
+
+/*
+*  DYN REQUEST SIZE INCREASE UNIT TEST CASES
+**/
 
 
 
