@@ -34,7 +34,7 @@ target_link_libraries(analysis_test PRIVATE dyn_array)
 
 
 # Compile the tester executable
-add_executable(${PROJECT_NAME}_test test/test.cpp)
+add_executable(${PROJECT_NAME}_test test/tests.cpp)
 
 target_compile_definitions(${PROJECT_NAME}_test PRIVATE)
 
