@@ -80,6 +80,20 @@ TEST (first_come_first_serve, ResultNULL)
 	dyn_array_destroy(ready_queue);
 }
 
+// if dyn_array_size(ready_queue) == 0
+TEST (first_come_first_serve, ZeroSizeArray) 
+{
+	dyn_array_t* ready_queue = dyn_array_create(3, sizeof(ProcessControlBlock_t), NULL);
+
+	// Not adding any ProcessControlBlock_t to ready_queue, no processes to schedule
+
+	ScheduleResult_t result = {.average_waiting_time = 0, .average_turnaround_time = 0, .total_run_time = 0};
+	
+	EXPECT_EQ(false,first_come_first_serve(ready_queue, &result));
+	
+	dyn_array_destroy(ready_queue);
+}
+
 
 /*
 *  Priority UNIT TEST CASES

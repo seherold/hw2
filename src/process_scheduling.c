@@ -26,19 +26,20 @@ int compareByArrival(const void *a, const void *b)
 	return (PCB1->arrival - PCB2->arrival);
 }
 
-
 // Runs the First Come First Served Process Scheduling algorithm over the incoming ready_queue
 // \param ready queue a dyn_array of type ProcessControlBlock_t that contain be up to N elements
 // \param result used for first come first served stat tracking \ref ScheduleResult_t
 // \return true if function ran successful else false for an error
 bool first_come_first_serve(dyn_array_t *ready_queue, ScheduleResult_t *result) 
 {
-	if (ready_queue == NULL || result == NULL)
+	if (ready_queue == NULL || result == NULL || dyn_array_size(ready_queue) == 0) // check for invalid parameters or no processes to be scheduled
 	{
 		return false;
 	}
 
 	uint32_t currentTime = 0;
+	uint32_t totalTurnAroundTime = 0;
+	uint32_t totalWaitingTime = 0;
 
 	if (dyn_array_sort(ready_queue, compareByArrival)) // sorting by arrival was successfull
 	{
@@ -46,12 +47,35 @@ bool first_come_first_serve(dyn_array_t *ready_queue, ScheduleResult_t *result)
 
 		for (size_t i = 0; i < numPCBs; i++) // for all of the processes in the queue
 		{
-			//virtual_cpu(dyn_array_at(ready_queue,i));
+			ProcessControlBlock_t* pcb = (ProcessControlBlock_t *)dyn_array_at(ready_queue,i)
 
+			if (currentTime < pcb.arrival) // ensures that the process has arrived
+			{
+				currentTime = pcb.arrival;
+			}
+
+			// before executing on virtual_cpu, remaining_burst_time should be the burst time of the process
+
+			uint32_t completionTime = currentTime + pcb.remaining_burst_time;
+
+			uint32_t turnAroundTime = completionTime - pcb.arrival;
+			totalTurnAroundTime += turnAroundTime;
+
+			uint32_t waitTime = turnAroundTime - pcb.remaining_burst_time;
+			totalWaitingTime += waitTime;
 			
-
+			while(pcb.remaining_burst_time > 0) // this moves the process through units of time until it is completed
+			{
+				virtual_cpu(pcb);
+				currentTime++;
+			}
 		}
 
+		result->average_waiting_time = (float)totalWaitingTime/numPCBs;
+		result->average_turnaround_time = (float)totalTurnAroundTime/numPCBs;
+		result->total_run_time = currentTime;
+
+		return true;
 	}
 	else
 	{
