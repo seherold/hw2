@@ -21,7 +21,9 @@
 
 	typedef struct 
 	{
-	c  // the total time to process all the PCBs in the ready queue
+		float average_waiting_time;	 // the average waiting time in the ready queue until first schedue on the cpu
+		float average_turnaround_time;  // the average completion time of the PCBs
+		unsigned long total_run_time;   // the total time to process all the PCBs in the ready queue
 	} 
 	ScheduleResult_t;
 

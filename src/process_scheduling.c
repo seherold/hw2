@@ -47,24 +47,24 @@ bool first_come_first_serve(dyn_array_t *ready_queue, ScheduleResult_t *result)
 
 		for (size_t i = 0; i < numPCBs; i++) // for all of the processes in the queue
 		{
-			ProcessControlBlock_t* pcb = (ProcessControlBlock_t *)dyn_array_at(ready_queue,i)
+			ProcessControlBlock_t* pcb = (ProcessControlBlock_t *)dyn_array_at(ready_queue,i);
 
-			if (currentTime < pcb.arrival) // ensures that the process has arrived
+			if (currentTime < pcb->arrival) // ensures that the process has arrived
 			{
-				currentTime = pcb.arrival;
+				currentTime = pcb->arrival;
 			}
 
 			// before executing on virtual_cpu, remaining_burst_time should be the burst time of the process
 
-			uint32_t completionTime = currentTime + pcb.remaining_burst_time;
+			uint32_t completionTime = currentTime + pcb->remaining_burst_time;
 
-			uint32_t turnAroundTime = completionTime - pcb.arrival;
+			uint32_t turnAroundTime = completionTime - pcb->arrival;
 			totalTurnAroundTime += turnAroundTime;
 
-			uint32_t waitTime = turnAroundTime - pcb.remaining_burst_time;
+			uint32_t waitTime = turnAroundTime - pcb->remaining_burst_time;
 			totalWaitingTime += waitTime;
 			
-			while(pcb.remaining_burst_time > 0) // this moves the process through units of time until it is completed
+			while(pcb->remaining_burst_time > 0) // this moves the process through units of time until it is completed
 			{
 				virtual_cpu(pcb);
 				currentTime++;
