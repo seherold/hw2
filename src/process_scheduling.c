@@ -19,56 +19,44 @@ void virtual_cpu(ProcessControlBlock_t *process_control_block)
 }
 
 
+int compareByArrival(const void *a, const void *b) 
+{
+	ProcessControlBlock_t * PCB1 = (ProcessControlBlock_t *)a;
+	ProcessControlBlock_t * PCB2 = (ProcessControlBlock_t *)b;
+	return (PCB1->arrival - PCB2->arrival);
+}
+
+
 // Runs the First Come First Served Process Scheduling algorithm over the incoming ready_queue
 // \param ready queue a dyn_array of type ProcessControlBlock_t that contain be up to N elements
 // \param result used for first come first served stat tracking \ref ScheduleResult_t
 // \return true if function ran successful else false for an error
 bool first_come_first_serve(dyn_array_t *ready_queue, ScheduleResult_t *result) 
 {
-
-	UNUSED(ready_queue);
-	UNUSED(result);
-	return false;
-
-	/*size_t numPCBs = ready_queue->size;
-	uint32_t burstTimes[numPCBs];
-
-	for (int i = 0; i < numPCBs; i++)
+	if (ready_queue == NULL || result == NULL)
 	{
-		memcpy(burstTimes + i*uint32_t, ready_queue + i*uint32_t, sizeof(uint32_t));
+		return false;
 	}
 
-	uint32_t waitingTimes[numPCBs];
+	uint32_t currentTime = 0;
 
-	waitingTimes[0] = 0;
-
-	for (int i = 1; i < numPCBs; i++)
+	if (dyn_array_sort(ready_queue, compareByArrival)) // sorting by arrival was successfull
 	{
-		waitingTimes[i] = burstTimes[i-1] + waitingTimes[i-1];
+		size_t numPCBs = dyn_array_size(ready_queue);
+
+		for (size_t i = 0; i < numPCBs; i++) // for all of the processes in the queue
+		{
+			//virtual_cpu(dyn_array_at(ready_queue,i));
+
+			
+
+		}
+
 	}
-
-	
-	uint32_t turnAroundTimes[numPCBs];
-
-	for (int i = 0; i < numPCBs; i++)
+	else
 	{
-		turnAroundTimes[i] = waitingTimes[i] + burstTimes[i];
+		return false;
 	}
-
-	// find total times
-	uint32_t totalWaitingTime = 0;
-	uint32_t totalTurnAroundTime = 0;
-
-	for (int i = 0; i < numPCBs; i++)
-	{
-		totalWaitingTime += waitingTimes[i];
-		totalTurnAroundTime += turnAroundTimes[i];
-	}
-
-	result->average_waiting_time = totalWaitingTime/numPCBs;
-	result->average_turnaround_time = totalTurnAroundTime/numPCBs;
-
-	return false;*/
 }
 
 // Runs the Shortest Job First Scheduling algorithm over the incoming ready_queue
