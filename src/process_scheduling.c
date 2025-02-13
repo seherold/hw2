@@ -126,9 +126,6 @@ bool round_robin(dyn_array_t *ready_queue, ScheduleResult_t *result, size_t quan
 // \return a populated dyn_array of ProcessControlBlocks if function ran successful else NULL for an error
 dyn_array_t *load_process_control_blocks(const char *input_file) 
 {
-	UNUSED(input_file);
-	return NULL;
-	/*
 	if (input_file == NULL)
 	{
 		return NULL;
@@ -136,51 +133,56 @@ dyn_array_t *load_process_control_blocks(const char *input_file)
 
 	FILE* fptr = fopen(input_file, "rb");
 
-	if (fptr == NULL) // error opening file
+	if (fptr == NULL)
+
 	{
 		return NULL;
 	}
 
-	uint32_t numberOfPCBs;
+	uint32_t numPCBs;
 
-	if (fread(&numberOfPCBs, sizeof(uint32_t), 1, fptr) != 1) // error reading number of PCBs, first number in binary file
+	if (fread(&numPCBs, sizeof(uint32_t), 1, fptr) == 1)
 	{
-		fclose(fptr);
-		return NULL;
-	}
+		dyn_array_t* pcbArray = dyn_array_create(numPCBs, sizeof(ProcessControlBlock_t), NULL);
 
-	dyn_array_t* arrayOfPCBs = dyn_array_create(numberOfPCBs, sizeof(ProcessControlBlock_t), NULL);
-
-	if (arrayOfPCBs == NULL)
-	{
-		fclose(fptr);
-		return NULL;
-	}
-
-	for (int i = 0; i < numberOfPCBs; i++)
-	{
-		ProcessControlBlock_t newPCB;
-
-		if (fread(&newPCB.remaining_burst_time, sizeof(uint32_t), 1, fptr) != 1 ||
-			fread(&newPCB.priority, sizeof(uint32_t), 1, fptr) != 1 ||
-			fread(&newPCB.arrival, sizeof(uint32_t), 1, fptr) != 1)
+		if (pcbArray == NULL)
 		{
-			free(arrayOfPCBs->array);
-			free(arrayOfPCBs);
 			fclose(fptr);
 			return NULL;
 		}
 
-		if (dyn_array_push_back(arrayOfPCBs, &newPCB) == false) // error adding PCB
+		for (uint32_t i = 0; i < numPCBs; i++)
 		{
-			free(arrayOfPCBs->array);
-			free(arrayOfPCBs);
-			fclose(fptr);
-			return NULL;
+			ProcessControlBlock_t pcb;
+
+			if (fread(&pcb.remaining_burst_time, sizeof(uint32_t), 1, fptr) == 1 &&
+			fread(&pcb.priority, sizeof(uint32_t), 1, fptr) == 1 &&
+			fread(&pcb.arrival, sizeof(uint32_t), 1, fptr) == 1)
+			{
+				if(dyn_array_push_back(pcb) == false)
+				{
+					free(pcbArray->array);
+					free(pcbArray);
+					fclose(fptr);
+					return NULL;
+				}
+			}
+			else
+			{
+				free(pcbArray->array);
+				free(pcbArray);
+				fclose(fptr);
+				return NULL;
+			}
 		}
+		fclose(fptr);
+		return pcbArray;
 	}
-    fclose(fptr);
-	return arrayOfPCBs;*/
+	else
+	{
+		fclose(fptr);
+		return NULL;
+	}
 }
 
 
