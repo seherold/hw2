@@ -159,18 +159,16 @@ dyn_array_t *load_process_control_blocks(const char *input_file)
 			fread(&pcb.priority, sizeof(uint32_t), 1, fptr) == 1 &&
 			fread(&pcb.arrival, sizeof(uint32_t), 1, fptr) == 1)
 			{
-				if(dyn_array_push_back(pcb) == false)
+				if(dyn_array_push_back(pcbArray,&pcb) == false)
 				{
-					free(pcbArray->array);
-					free(pcbArray);
+					dyn_array_destroy(pcbArray);
 					fclose(fptr);
 					return NULL;
 				}
 			}
 			else
 			{
-				free(pcbArray->array);
-				free(pcbArray);
+				dyn_array_destroy(pcbArray);
 				fclose(fptr);
 				return NULL;
 			}
