@@ -41,7 +41,7 @@ bool first_come_first_serve(dyn_array_t *ready_queue, ScheduleResult_t *result)
 	uint32_t totalTurnAroundTime = 0;
 	uint32_t totalWaitingTime = 0;
 
-	if (dyn_array_sort(ready_queue, compareByArrival)) // sorting by arrival was successfull
+	if (dyn_array_sort(ready_queue, compareByArrival)) // sorting by arrival was successful
 	{
 		size_t numPCBs = dyn_array_size(ready_queue);
 
@@ -94,6 +94,14 @@ bool shortest_job_first(dyn_array_t *ready_queue, ScheduleResult_t *result)
 	return false;
 }
 
+
+int compareByPriority(const void *a, const void *b) 
+{
+	ProcessControlBlock_t * PCB1 = (ProcessControlBlock_t *)a;
+	ProcessControlBlock_t * PCB2 = (ProcessControlBlock_t *)b;
+	return (PCB1->priority - PCB2->priority);
+}
+
 // Runs the Priority algorithm over the incoming ready_queue
 // \param ready queue a dyn_array of type ProcessControlBlock_t that contain be up to N elements
 // \param result used for shortest job first stat tracking \ref ScheduleResult_t
@@ -103,6 +111,60 @@ bool priority(dyn_array_t *ready_queue, ScheduleResult_t *result)
 	UNUSED(ready_queue);
 	UNUSED(result);
 	return false;
+
+	/*
+	if (ready_queue == NULL || result == NULL || dyn_array_size(ready_queue) == 0) // check for invalid parameters or no processes to be scheduled
+	{
+		return false;
+	}
+
+	uint32_t currentTime = 0;
+	uint32_t totalTurnAroundTime = 0;
+	uint32_t totalWaitingTime = 0;
+
+
+	size_t numPCBs = dyn_array_size(ready_queue);
+
+	dyn_array_t* temp_queue = dyn_array_create(numPCBs, sizeof(ProcessControlBlock_t), NULL);
+
+	for (size_t i = 0; i < numPCBs; i++) // for all of the processes in the queue
+	{
+		if (currentTime < pcb->arrival && !pcb->started) // ensures that the process has arrived but hasn't started
+		{
+			ProcessControlBlock_t* pcb = (ProcessControlBlock_t *)dyn_array_at(ready_queue,i);
+			if(dyn_array_push_back(temp_queue, &pcb) == false)
+			{
+				dyn_array_destroy(temp_queue);
+				return false;
+			}
+		}
+
+		// before executing on virtual_cpu, remaining_burst_time should be the burst time of the process
+
+		uint32_t completionTime = currentTime + pcb->remaining_burst_time;
+
+		uint32_t turnAroundTime = completionTime - pcb->arrival;
+		totalTurnAroundTime += turnAroundTime;
+
+		uint32_t waitTime = turnAroundTime - pcb->remaining_burst_time;
+		totalWaitingTime += waitTime;
+			
+		while(pcb->remaining_burst_time > 0) // this moves the process through units of time until it is completed
+		{
+			virtual_cpu(pcb);
+			currentTime++;
+		}
+
+		result->average_waiting_time = (float)totalWaitingTime/numPCBs;
+		result->average_turnaround_time = (float)totalTurnAroundTime/numPCBs;
+		result->total_run_time = currentTime;
+
+		return true;
+	}
+	else
+	{
+		return false;
+	}*/
 }
 
 
