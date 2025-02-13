@@ -94,6 +94,49 @@ TEST (first_come_first_serve, ZeroSizeArray)
 	dyn_array_destroy(ready_queue);
 }
 
+/*
+*  Shortest Job First UNIT TEST CASES
+**/
+TEST (shortest_job_first, ReadyQueueNULL) 
+{
+	ScheduleResult_t result = {.average_waiting_time = 0, .average_turnaround_time = 0, .total_run_time = 0};
+	EXPECT_EQ(false,shortest_job_first(NULL, &result));
+}
+
+
+// if result == NULL
+TEST (shortest_job_first, ResultNULL) 
+{
+	ProcessControlBlock_t newPCB1 = {.remaining_burst_time = 5, .priority = 0, .arrival = 0, .started = false};
+	ProcessControlBlock_t newPCB2 = {.remaining_burst_time = 3, .priority = 0, .arrival = 0, .started = false};
+	ProcessControlBlock_t newPCB3 = {.remaining_burst_time = 8, .priority = 0, .arrival = 0, .started = false};
+	
+	dyn_array_t* ready_queue = dyn_array_create(3, sizeof(ProcessControlBlock_t), NULL);
+	
+	dyn_array_push_back(ready_queue, &newPCB1);
+	dyn_array_push_back(ready_queue, &newPCB2);
+	dyn_array_push_back(ready_queue, &newPCB3);
+	
+	EXPECT_EQ(false,shortest_job_first(ready_queue, NULL));
+	
+	dyn_array_destroy(ready_queue);
+}
+
+// if dyn_array_size(ready_queue) == 0
+TEST (shortest_job_first, ZeroSizeArray) 
+{
+	dyn_array_t* ready_queue = dyn_array_create(3, sizeof(ProcessControlBlock_t), NULL);
+
+	// Not adding any ProcessControlBlock_t to ready_queue, no processes to schedule
+
+	ScheduleResult_t result = {.average_waiting_time = 0, .average_turnaround_time = 0, .total_run_time = 0};
+	
+	EXPECT_EQ(false,shortest_job_first(ready_queue, &result));
+	
+	dyn_array_destroy(ready_queue);
+}
+
+
 
 /*
 *  Priority UNIT TEST CASES
@@ -124,6 +167,19 @@ TEST (priority, ResultNULL)
 	dyn_array_destroy(ready_queue);
 }
 
+// if dyn_array_size(ready_queue) == 0
+TEST (priority, ZeroSizeArray) 
+{
+	dyn_array_t* ready_queue = dyn_array_create(3, sizeof(ProcessControlBlock_t), NULL);
+
+	// Not adding any ProcessControlBlock_t to ready_queue, no processes to schedule
+
+	ScheduleResult_t result = {.average_waiting_time = 0, .average_turnaround_time = 0, .total_run_time = 0};
+	
+	EXPECT_EQ(false,priority(ready_queue, &result));
+	
+	dyn_array_destroy(ready_queue);
+}
 
 /*
 *  Shortest remaining time UNIT TEST CASES
@@ -150,6 +206,20 @@ TEST (shortest_remaining_time_first, ResultNULL)
 	dyn_array_push_back(ready_queue, &newPCB3);
 	
 	EXPECT_EQ(false,shortest_remaining_time_first(ready_queue, NULL));
+	
+	dyn_array_destroy(ready_queue);
+}
+
+// if dyn_array_size(ready_queue) == 0
+TEST (shortest_remaining_time_first, ZeroSizeArray) 
+{
+	dyn_array_t* ready_queue = dyn_array_create(3, sizeof(ProcessControlBlock_t), NULL);
+
+	// Not adding any ProcessControlBlock_t to ready_queue, no processes to schedule
+
+	ScheduleResult_t result = {.average_waiting_time = 0, .average_turnaround_time = 0, .total_run_time = 0};
+	
+	EXPECT_EQ(false,shortest_remaining_time_first(ready_queue, &result));
 	
 	dyn_array_destroy(ready_queue);
 }
