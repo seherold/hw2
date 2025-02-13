@@ -136,6 +136,47 @@ TEST (shortest_job_first, ZeroSizeArray)
 	dyn_array_destroy(ready_queue);
 }
 
+/*
+* Round Robin UNIT TEST CASES
+*/
+//Null Params
+TEST (round_robin, NULLParams)
+{
+    ScheduleResult_t result = {.average_waiting_time = 0, .average_turnaround_time = 0, .total_run_time = 0};
+    EXPECT_EQ(false, round_robin(NULL, &result, QUANTUM)); //NULL Queue
+    
+    
+    
+    ProcessControlBlock_t newPCB1 = {.remaining_burst_time = 5, .priority = 0, .arrival = 0, .started = false};
+    ProcessControlBlock_t newPCB2 = {.remaining_burst_time = 3, .priority = 0, .arrival = 0, .started = false};
+    dyn_array_t* ready_queue = dyn_array_create(2, sizeof(ProcessControlBlock_t), NULL);
+    dyn_array_push_back(ready_queue, &newPCB1);
+    dyn_array_push_back(ready_queue, &newPCB2);
+    
+    EXPECT_EQ(false, round_robin(ready_queue, NULL, QUANTUM)); //NULL Result
+    
+    
+    dyn_array_destroy(ready_queue);
+}
+
+//Bad Params
+TEST (round_robin, BadParams)
+{
+    ScheduleResult_t result = {.average_waiting_time = 0, .average_turnaround_time = 0, .total_run_time = 0};
+    
+    
+    
+    
+    dyn_array_t* ready_queue = dyn_array_create(2, sizeof(ProcessControlBlock_t), NULL); //Empty ready_queue
+    
+    EXPECT_EQ(false, round_robin(ready_queue, &result, 0)); //If Quantym is zero
+    
+    EXPECT_EQ(false, round_robin(ready_queue, &result, QUANTUM)); //If Queue is empty
+    
+    
+    dyn_array_destroy(ready_queue);
+}
+
 
 
 /*
