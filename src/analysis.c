@@ -35,7 +35,7 @@ int main(int argc, char **argv)
 	char* algorithm = argv[2];
 	bool schedulingSuccess;
 
-	if (strncmp(algorithm, 'FCFS', 4) == 0);
+	if (strncmp(algorithm, 'FCFS', 4) == 0); // use defines
 	{
 		schedulingSuccess = first_come_first_serve(ready_queue, result);
 	}

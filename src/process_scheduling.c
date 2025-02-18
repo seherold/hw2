@@ -49,9 +49,9 @@ bool first_come_first_serve(dyn_array_t *ready_queue, ScheduleResult_t *result)
 		{
 			ProcessControlBlock_t* pcb = (ProcessControlBlock_t *)dyn_array_at(ready_queue,i);
 			// Can pcb come back null?
-			if (currentTime < pcb->arrival) // ensures that the process has arrived
+			if (currentTime <= pcb->arrival) // ensures that the process has arrived
 			{
-				currentTime = pcb->arrival;
+				currentTime = pcb->arrival; // we don't necessarily care here what the first arrival time is, we've already sorted by arrival so the one with the shortest arrival time should be first
 			}
 
 			uint32_t waitTime = currentTime - pcb->arrival;
@@ -63,7 +63,7 @@ bool first_come_first_serve(dyn_array_t *ready_queue, ScheduleResult_t *result)
 				currentTime++;
 			}
 
-			uint32_t turnAroundTime = currentTime - pcb.arrival;
+			uint32_t turnAroundTime = currentTime - pcb->arrival;
 			totalTurnAroundTime += turnAroundTime;
 		}
 
@@ -104,6 +104,7 @@ int compareByPriority(const void *a, const void *b)
 // \return true if function ran successful else false for an error
 bool priority(dyn_array_t *ready_queue, ScheduleResult_t *result) 
 {
+	//do we need to actively prevent starvation?
 	UNUSED(ready_queue);
 	UNUSED(result);
 	return false;
@@ -112,56 +113,62 @@ bool priority(dyn_array_t *ready_queue, ScheduleResult_t *result)
 	{
 		return false;
 	}
-	//check if any of the pcbs have arrival times of 0 or if we need to set the current time to the first arrival time
 
 	uint32_t currentTime = 0;
 	uint32_t totalTurnAroundTime = 0;
 	uint32_t totalWaitingTime = 0;
 
 	size_t numPCBs = dyn_array_size(ready_queue);
+	size_t numPCBsRemaining = numPCBs;
 
-	dyn_array_t* temp_queue = dyn_array_create(numPCBs, sizeof(ProcessControlBlock_t), NULL);
-
-	for (size_t i = 0; i < numPCBs; i++) // for all of the processes in the queue
+	for (size_t i = 0; i < numPCBsRemaining; i++) // for all of the processes REMAINING in the queue, ISSUE--this only runs once, need it to run again
 	{
 		ProcessControlBlock_t* pcb = (ProcessControlBlock_t *)dyn_array_at(ready_queue,i);
 		// can pcb come back null?
-		if (currentTime < pcb->arrival && !pcb->started) // ensures that the process has arrived but hasn't started
+		if (currentTime <= pcb->arrival && !pcb->started) // ensures that the process has arrived but hasn't started
 		{
+			dyn_array_t* temp_queue = dyn_array_create(numPCBsRemaining, sizeof(ProcessControlBlock_t), NULL);
 			if(dyn_array_push_back(temp_queue, &pcb) == false)
 			{
 				dyn_array_destroy(temp_queue);
 				return false;
 			}
 		}
-	}
+
+		if (dyn_array_sort(ready_queue, compareByPriority) == false)
+		{
+			dyn_array_destroy(temp_queue);
+			return false;
+		}
+
+		ProcessControlBlock_t* processToRun;
+
+		if (dyn_array_extract_front(temp_queue, processToRun) == false) // don't remove pcbs because we make a temp_queue every time
+		{
+			dyn_array_destroy(temp_queue);
+			return false;
+		}
+
+		if (currentTime <= processToRun->arrival)
+		{
+			currentTime = processToRun->arrival; 
+		}
 	
-	if (dyn_array_sort(ready_queue, compareByPriority) == false)
-	{
-		dyn_array_destroy(temp_queue);
-		return false;
+		uint32_t waitTime = currentTime - processToRun->arrival;
+    	totalWaitingTime += waitTime;
+
+		while(processToRun->remaining_burst_time > 0) // this moves the process through units of time until it is completed
+		{
+			virtual_cpu(processToRun);
+			processToRun->started = true;
+			currentTime++;
+		}
+
+		uint32_t turnAroundTime = currentTime - processToRun->arrival;
+		totalTurnAroundTime += turnAroundTime;
+
+		numPCBsRemaining--;
 	}
-
-	ProcessControlBlock_t* processToRun;
-
-	if (dyn_array_extract_front(temp_queue, processToRun) == false) // do I need to remove this one because I'm running it now? Pop?
-	{
-		dyn_array_destroy(temp_queue);
-		return false;
-	}
-	
-	uint32_t waitTime = currentTime - processToRun->arrival;
-    totalWaitingTime += waitTime;
-
-	while(processToRun->remaining_burst_time > 0) // this moves the process through units of time until it is completed
-	{
-		virtual_cpu(processToRun);
-		processToRun->started = true;
-		currentTime++;
-	}
-
-	uint32_t turnAroundTime = currentTime - processToRun.arrival;
-	totalTurnAroundTime += turnAroundTime;
 
 	result->average_waiting_time = (float)totalWaitingTime/numPCBs;
 	result->average_turnaround_time = (float)totalTurnAroundTime/numPCBs;
