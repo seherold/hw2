@@ -19,7 +19,7 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	// abort();		// REPLACE ME with implementation.
+	abort();		// REPLACE ME with implementation.
 	/*
 	// Load process control blocks from binary file passed at the command line into a dyn_array (this is your ready queue).
 	char* file = argv[1];
