@@ -48,7 +48,7 @@ bool first_come_first_serve(dyn_array_t *ready_queue, ScheduleResult_t *result)
 		for (size_t i = 0; i < numPCBs; i++) // for all of the processes in the queue
 		{
 			ProcessControlBlock_t* pcb = (ProcessControlBlock_t *)dyn_array_at(ready_queue,i);
-
+			// Can pcb come back null?
 			if (currentTime < pcb->arrival) // ensures that the process has arrived
 			{
 				currentTime = pcb->arrival;
@@ -116,6 +116,7 @@ bool priority(dyn_array_t *ready_queue, ScheduleResult_t *result)
 	{
 		return false;
 	}
+	//check if any of the pcbs have arrival times of 0 or if we need to set the current time to the first arrival time
 
 	uint32_t currentTime = 0;
 	uint32_t totalTurnAroundTime = 0;
@@ -128,9 +129,10 @@ bool priority(dyn_array_t *ready_queue, ScheduleResult_t *result)
 
 	for (size_t i = 0; i < numPCBs; i++) // for all of the processes in the queue
 	{
+		ProcessControlBlock_t* pcb = (ProcessControlBlock_t *)dyn_array_at(ready_queue,i);
+		// can pcb come back null?
 		if (currentTime < pcb->arrival && !pcb->started) // ensures that the process has arrived but hasn't started
 		{
-			ProcessControlBlock_t* pcb = (ProcessControlBlock_t *)dyn_array_at(ready_queue,i);
 			if(dyn_array_push_back(temp_queue, &pcb) == false)
 			{
 				dyn_array_destroy(temp_queue);
@@ -147,7 +149,7 @@ bool priority(dyn_array_t *ready_queue, ScheduleResult_t *result)
 
 	ProcessControlBlock_t* processToRun;
 
-	if (dyn_array_extract_front(temp_queue, processToRun) == false)
+	if (dyn_array_extract_front(temp_queue, processToRun) == false) // do I need to remove this one because I'm running it now? Pop?
 	{
 		dyn_array_destroy(temp_queue);
 		return false;
@@ -155,19 +157,24 @@ bool priority(dyn_array_t *ready_queue, ScheduleResult_t *result)
 
 	while(processToRun->remaining_burst_time > 0) // this moves the process through units of time until it is completed
 	{
-		virtual_cpu(pcb);
+		virtual_cpu(processToRun);
+		processToRun->started = true;
 		currentTime++;
 	}
-		
-	// before executing on virtual_cpu, remaining_burst_time should be the burst time of the process
 
-	uint32_t completionTime = currentTime + pcb->remaining_burst_time;
+	uint32_t currentTime = 0;
+	uint32_t totalTurnAroundTime = 0;
+	uint32_t totalWaitingTime = 0;
+	
+	/////
+	uint32_t waitTime = currentTime - processToRun.arrival
+    totalWaitingTime += waiting_time
 
-	uint32_t turnAroundTime = completionTime - pcb->arrival;
-	totalTurnAroundTime += turnAroundTime;
+	current_time += process.remaining_burst_time  // Run process on CPU
 
-	uint32_t waitTime = turnAroundTime - pcb->remaining_burst_time;
-	totalWaitingTime += waitTime;
+	turnaround_time = current_time - processToRun.arrival
+	total_turnaround_time += turnaround_time
+	/////
 
 	result->average_waiting_time = (float)totalWaitingTime/numPCBs;
 	result->average_turnaround_time = (float)totalTurnAroundTime/numPCBs;

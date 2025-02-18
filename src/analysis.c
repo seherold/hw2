@@ -20,7 +20,7 @@ int main(int argc, char **argv)
 	}
 
 	// abort();		// REPLACE ME with implementation.
-
+	/*
 	// Load process control blocks from binary file passed at the command line into a dyn_array (this is your ready queue).
 	char* file = argv[1];
 	dyn_array_t* ready_queue = load_process_control_blocks(file);
@@ -101,6 +101,7 @@ int main(int argc, char **argv)
 	}
 
     fclose(fptr);
+	*/
 
 	return EXIT_SUCCESS;
 }
