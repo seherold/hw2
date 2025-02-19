@@ -252,7 +252,7 @@ TEST (priority, ZeroSizeArray)
 	dyn_array_destroy(ready_queue);
 }
 
-TEST (priority, OneProcess)
+TEST (priority, OneProcess) // tests for just one process
 {
 	ProcessControlBlock_t newPCB1 = {.remaining_burst_time = 5, .priority = 1, .arrival = 0, .started = false};
 	
@@ -271,7 +271,7 @@ TEST (priority, OneProcess)
 	dyn_array_destroy(ready_queue);
 }
 
-TEST (priority, OneProcessZeroBurstTime)
+TEST (priority, OneProcessZeroBurstTime) // tests for if we have zero burst time
 {
 	ProcessControlBlock_t newPCB1 = {.remaining_burst_time = 0, .priority = 1, .arrival = 0, .started = false};
 	
@@ -382,7 +382,7 @@ TEST (priority, DifferentPrioritiesDiffArrivalShort) // should be actually doing
 	dyn_array_destroy(ready_queue);
 }
 
-TEST (priority, DifferentPrioritiesDiffArrivalLong) // should be actually doing the priority algorithm because each process is given a different priority
+TEST (priority, DifferentPrioritiesDiffArrivalLong) // tests with more than 3 processes
 {
 	ProcessControlBlock_t newPCB1 = {.remaining_burst_time = 4, .priority = 2, .arrival = 0, .started = false};
 	ProcessControlBlock_t newPCB2 = {.remaining_burst_time = 2, .priority = 1, .arrival = 1, .started = false};
