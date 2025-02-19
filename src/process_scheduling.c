@@ -118,6 +118,8 @@ bool priority(dyn_array_t *ready_queue, ScheduleResult_t *result)
 	uint32_t totalTurnAroundTime = 0;
 	uint32_t totalWaitingTime = 0;
 
+	size_t numPCBs = dyn_array_size(ready_queue);
+
 	if (dyn_array_sort(ready_queue, compareByArrival) == false)
 	{
 		return false;
@@ -149,8 +151,8 @@ bool priority(dyn_array_t *ready_queue, ScheduleResult_t *result)
 
 		if (dyn_array_size(arrived_queue) == 0) //what if no processes have arrived
 		{
-			ProcessControlBlock_t* pcbFirstArrived = (ProcessControlBlock_t *)dyn_array_front(arrived_queue); 
-			currentTime = pcbFirstArrived->arrival; // set currentTime to the smallest arrival time you have in arrived, this is the process that has arrived next, we want to start running it
+			ProcessControlBlock_t* pcbFirstArrived = (ProcessControlBlock_t *)dyn_array_front(ready_queue); 
+			currentTime = pcbFirstArrived->arrival; // set currentTime to the smallest arrival time you have in the ready_queue, this is the process that has arrived next, we want to start running it
 		}
 		else // one or more processes have arrived
 		{
