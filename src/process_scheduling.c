@@ -41,42 +41,64 @@ bool first_come_first_serve(dyn_array_t *ready_queue, ScheduleResult_t *result)
 	uint32_t totalTurnAroundTime = 0;
 	uint32_t totalWaitingTime = 0;
 
-	if (dyn_array_sort(ready_queue, compareByArrival)) // sorting by arrival was successful
-	{
-		size_t numPCBs = dyn_array_size(ready_queue);
+	size_t numPCBs = dyn_array_size(ready_queue);
 
-		for (size_t i = 0; i < numPCBs; i++) // for all of the processes in the queue
-		{
-			ProcessControlBlock_t* pcb = (ProcessControlBlock_t *)dyn_array_at(ready_queue,i);
-			// Can pcb come back null?
-			if (currentTime <= pcb->arrival) // ensures that the process has arrived
-			{
-				currentTime = pcb->arrival; // we don't necessarily care here what the first arrival time is, we've already sorted by arrival so the one with the shortest arrival time should be first
-			}
-
-			uint32_t waitTime = currentTime - pcb->arrival;
-    		totalWaitingTime += waitTime;
-
-			while(pcb->remaining_burst_time > 0) // this moves the process through units of time until it is completed
-			{
-				virtual_cpu(pcb);
-				currentTime++;
-			}
-
-			uint32_t turnAroundTime = currentTime - pcb->arrival;
-			totalTurnAroundTime += turnAroundTime;
-		}
-
-		result->average_waiting_time = (float)totalWaitingTime/numPCBs;
-		result->average_turnaround_time = (float)totalTurnAroundTime/numPCBs;
-		result->total_run_time = currentTime;
-
-		return true;
-	}
-	else
+	if (dyn_array_sort(ready_queue, compareByArrival) == false)
 	{
 		return false;
 	}
+
+	while (dyn_array_size(ready_queue) > 0) // for all of the processes in the queue
+	{
+
+		ProcessControlBlock_t processToRun;
+
+		if (dyn_array_extract_front(ready_queue, &processToRun) == false)
+		{
+			return false;
+		} // now we have the process we want to run
+
+		if (currentTime <= processToRun.arrival) // ensures that the process has arrived
+		{
+			currentTime = processToRun.arrival; // we don't necessarily care here what the first arrival time is, we've already sorted by arrival so the one with the shortest arrival time should be first
+		}
+
+		// need to remove process we are about to run from ready_queue
+
+		for (size_t i = 0; i < dyn_array_size(ready_queue); i++)
+		{
+			ProcessControlBlock_t* pcbToRemove = (ProcessControlBlock_t *)dyn_array_at(ready_queue,i);
+
+			if (pcbToRemove->remaining_burst_time == processToRun.remaining_burst_time && 
+				pcbToRemove->priority == processToRun.priority &&
+				pcbToRemove->arrival == processToRun.arrival &&
+				pcbToRemove->started == processToRun.started)
+			{
+				if(dyn_array_erase(ready_queue, i)  == false)
+				{
+					return false;
+				}
+			}
+		}
+
+		uint32_t waitTime = currentTime - processToRun.arrival;
+    	totalWaitingTime += waitTime;
+
+		while(processToRun.remaining_burst_time > 0) // this moves the process through units of time until it is completed
+		{
+			virtual_cpu(&processToRun);
+			currentTime++;
+		}
+
+		uint32_t turnAroundTime = currentTime - processToRun.arrival;
+		totalTurnAroundTime += turnAroundTime;
+	}
+
+	result->average_waiting_time = (float)totalWaitingTime/numPCBs;
+	result->average_turnaround_time = (float)totalTurnAroundTime/numPCBs;
+	result->total_run_time = currentTime;
+
+	return true;
 }
 
 // Runs the Shortest Job First Scheduling algorithm over the incoming ready_queue
@@ -174,12 +196,12 @@ bool priority(dyn_array_t *ready_queue, ScheduleResult_t *result)
 
 			for (size_t i = 0; i < dyn_array_size(ready_queue); i++)
 			{
-				ProcessControlBlock_t* pcb = (ProcessControlBlock_t *)dyn_array_at(ready_queue,i);
+				ProcessControlBlock_t* pcbToRemove = (ProcessControlBlock_t *)dyn_array_at(ready_queue,i);
 
-				if (pcb->remaining_burst_time == processToRun.remaining_burst_time && 
-					pcb->priority == processToRun.priority &&
-					pcb->arrival == processToRun.arrival &&
-					pcb->started == processToRun.started)
+				if (pcbToRemove->remaining_burst_time == processToRun.remaining_burst_time && 
+					pcbToRemove->priority == processToRun.priority &&
+					pcbToRemove->arrival == processToRun.arrival &&
+					pcbToRemove->started == processToRun.started)
 				{
 					if(dyn_array_erase(ready_queue, i)  == false)
 					{
