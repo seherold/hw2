@@ -389,6 +389,17 @@ dyn_array_t *load_process_control_blocks(const char *input_file)
 				return NULL;
 			}
 		}
+
+		uint32_t extraData;
+
+		if (fread(&extraData, sizeof(uint32_t), 1, fptr) == 1)
+		{
+			//binary file contains more data than it should
+			dyn_array_destroy(pcbArray);
+			fclose(fptr);
+			return NULL;
+		}
+		
 		fclose(fptr);
 		return pcbArray;
 	}
