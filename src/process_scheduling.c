@@ -38,6 +38,7 @@ bool first_come_first_serve(dyn_array_t *ready_queue, ScheduleResult_t *result)
 	}
 
 	uint32_t currentTime = 0;
+	uint32_t totalRunTime = 0;
 	uint32_t totalTurnAroundTime = 0;
 	uint32_t totalWaitingTime = 0;
 
@@ -53,7 +54,7 @@ bool first_come_first_serve(dyn_array_t *ready_queue, ScheduleResult_t *result)
 
 		ProcessControlBlock_t processToRun;
 
-		if (dyn_array_extract_front(ready_queue, &processToRun) == false)
+		if (dyn_array_extract_front(ready_queue, &processToRun) == false) // grabs the pcb and removes it from the ready_queue
 		{
 			return false;
 		} // now we have the process we want to run
@@ -63,24 +64,6 @@ bool first_come_first_serve(dyn_array_t *ready_queue, ScheduleResult_t *result)
 			currentTime = processToRun.arrival; // we don't necessarily care here what the first arrival time is, we've already sorted by arrival so the one with the shortest arrival time should be first
 		}
 
-		// need to remove process we are about to run from ready_queue
-
-		for (size_t i = 0; i < dyn_array_size(ready_queue); i++)
-		{
-			ProcessControlBlock_t* pcbToRemove = (ProcessControlBlock_t *)dyn_array_at(ready_queue,i);
-
-			if (pcbToRemove->remaining_burst_time == processToRun.remaining_burst_time && 
-				pcbToRemove->priority == processToRun.priority &&
-				pcbToRemove->arrival == processToRun.arrival &&
-				pcbToRemove->started == processToRun.started)
-			{
-				if(dyn_array_erase(ready_queue, i)  == false)
-				{
-					return false;
-				}
-			}
-		}
-
 		uint32_t waitTime = currentTime - processToRun.arrival;
     	totalWaitingTime += waitTime;
 
@@ -88,6 +71,7 @@ bool first_come_first_serve(dyn_array_t *ready_queue, ScheduleResult_t *result)
 		{
 			virtual_cpu(&processToRun);
 			currentTime++;
+			totalRunTime++;
 		}
 
 		uint32_t turnAroundTime = currentTime - processToRun.arrival;
@@ -96,7 +80,7 @@ bool first_come_first_serve(dyn_array_t *ready_queue, ScheduleResult_t *result)
 
 	result->average_waiting_time = (float)totalWaitingTime/numPCBs;
 	result->average_turnaround_time = (float)totalTurnAroundTime/numPCBs;
-	result->total_run_time = currentTime;
+	result->total_run_time = currentTime; // inludes idle time at this point, do totalRunTime if you don't want to include idle time
 
 	return true;
 }
