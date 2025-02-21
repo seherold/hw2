@@ -21,11 +21,11 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 add_library(dyn_array STATIC src/dyn_array.c)
 
 # Compile the analysis executable
-add_executable(analysis_test src/analysis.c)
+add_executable(analysis src/analysis.c src/process_scheduling.c)
 
 
 # link the dyn_array library we compiled against our analysis executable
-target_link_libraries(analysis_test PUBLIC dyn_array)
+target_link_libraries(analysis PUBLIC dyn_array)
 
 
 # Compile the tester executable
