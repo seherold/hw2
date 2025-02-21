@@ -35,7 +35,7 @@ int main(int argc, char **argv)
 	char* algorithm = argv[2];
 	bool schedulingSuccess;
 
-	if (strncmp(algorithm, FCFS, 4) == 0) // use defines
+	if (strncmp(algorithm, FCFS, 4) == 0)
 	{
 		schedulingSuccess = first_come_first_serve(ready_queue, &result);
 	}
@@ -78,7 +78,6 @@ int main(int argc, char **argv)
 	// Clean up any allocations
 	dyn_array_destroy(ready_queue);
 
-
 	// Report your times to STDOUT using either printf or fprintf (copy these to the README.md file)
 	if (printf("Average Waiting Time: %f\n", result.average_waiting_time) < 0 ||
 	printf("Average Turnaround Time: %f\n", result.average_turnaround_time) < 0 ||
@@ -87,7 +86,7 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	FILE *fptr = fopen("README.md", "w"); 
+	FILE *fptr = fopen("../README.md", "a");
     if (fptr == NULL) 
     {
         return EXIT_FAILURE; 
