@@ -231,6 +231,106 @@ bool round_robin(dyn_array_t *ready_queue, ScheduleResult_t *result, size_t quan
 	UNUSED(result);
 	UNUSED(quantum);
 	return false;
+	
+	/*
+	if (ready_queue == NULL || result == NULL || quantum == 0 || dyn_array_size(ready_queue) == 0) // check for null parameters, bad paramater or no processes to be scheduled
+	{
+		return false;
+	}
+	
+	uint32_t currentTime = UINT32_MAX;
+	uint32_t totalTurnAroundTime = 0;
+	uint32_t totalWaitingTime = 0;
+	size_t numPCB = dyn_array_size(ready_queue);
+	
+	
+	for(int i = 0; i < numPCB; i++){
+	
+	    if(dyn_array_at(ready_queue,i) == NULL){
+	    
+	        return false;
+	    }
+	    else{
+	    
+	        ProcessControlBlock_t* pcb = (ProcessControlBlock_t *)dyn_array_at(ready_queue,i);
+	        currentTime = currentTime < pcb->arrival ? pcb->arrival : currentTime;
+	    }
+	
+	}
+	
+	size_t itter = 0;
+	
+	while(dyn_array_size(ready_queue) != 0){
+	
+	    size_t Check = dyn_array_size(ready_queue);
+	   
+	    
+	    
+	    ProcessControlBlock_t* pcb = (ProcessControlBlock_t *)dyn_array_at(ready_queue,0);
+	    if(pcb->arrival > currentTime){
+	    
+	        if(itter < Check){
+	            if(dyn_array_push_back(ready_queue, (void *)pcb)){
+	                dyn_array_pop_front(ready_queue);
+	                itter++;
+	            }
+	            else{
+	        
+	                return false;
+	            }
+	        }
+	        else{
+	            for(int i = 0; i < Check; i++){
+	                ProcessControlBlock_t* pcb = (ProcessControlBlock_t *)dyn_array_at(ready_queue,i);
+	                currentTime = currentTime < pcb->arrival ? pcb->arrival : currentTime;
+	            }
+	            itter = 0;
+	        }
+	    }
+	    else{
+	    
+	     uint32_t waitTime = 0;
+	    if(!(pcb->started)) {    
+	    
+	         waitTime = currentTime - pcb->arrival;
+	        
+	    }
+	    else{
+	    
+	        waitTime = currentTime - (pcb->arrival + (quantum)); //This is wrong, need to adjust using something in pcb (Discuss with Group later)
+	    }
+	    
+	    totalWaitingTime += waitTime;
+	        
+	        
+	        if(pcb->remaining_burst_time > quantum){
+	            for(int i < 0; i < quantum; i++){
+	                pcb-> started = true;
+	                virtual_cpu(pcb);
+		            currentTime++;
+		            
+	            }
+	        }
+	        else{
+	            while(pcb->remaining_burst_time > 0) // this moves the process through units of time until it is completed
+			    {
+				    virtual_cpu(pcb);
+				    currentTime++;
+			    }
+			    totalTurnAroundTime += currentTime - pcb->arrival;
+	            dyn_array_pop_front(ready_queue);
+	            
+	        }
+	    }
+	}
+	
+	//Figure out the results
+	
+	result->average_waiting_time = totalWaitingTime/numPCB;
+	result->average_turnaround_time = totalTurnAroundTime/numPCB;
+	result->total_run_time = currentTime;
+	
+	*/
 }
 
 
