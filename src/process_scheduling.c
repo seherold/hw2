@@ -80,7 +80,7 @@ bool first_come_first_serve(dyn_array_t *ready_queue, ScheduleResult_t *result)
 
 	result->average_waiting_time = (float)totalWaitingTime/numPCBs;
 	result->average_turnaround_time = (float)totalTurnAroundTime/numPCBs;
-	result->total_run_time = currentTime; // inludes idle time at this point, do totalRunTime if you don't want to include idle time
+	result->total_run_time = totalRunTime;
 
 	return true;
 }
@@ -121,6 +121,7 @@ bool priority(dyn_array_t *ready_queue, ScheduleResult_t *result)
 	}
 
 	uint32_t currentTime = 0;
+	uint32_t totalRunTime = 0;
 	uint32_t totalTurnAroundTime = 0;
 	uint32_t totalWaitingTime = 0;
 
@@ -203,6 +204,7 @@ bool priority(dyn_array_t *ready_queue, ScheduleResult_t *result)
 			{
 				virtual_cpu(&processToRun);
 				currentTime++;
+				totalRunTime++;
 			}
 
 			uint32_t turnAroundTime = currentTime - processToRun.arrival;
@@ -214,7 +216,7 @@ bool priority(dyn_array_t *ready_queue, ScheduleResult_t *result)
 	
 	result->average_waiting_time = (float)totalWaitingTime/numPCBs;
 	result->average_turnaround_time = (float)totalTurnAroundTime/numPCBs;
-	result->total_run_time = currentTime;
+	result->total_run_time = totalRunTime;
 
 	return true;
 }

@@ -112,7 +112,7 @@ TEST (first_come_first_serve, MultipleProcessZeroBurstTime)
 	
 	EXPECT_EQ(true,first_come_first_serve(ready_queue, &result));
 	
-	EXPECT_EQ(result.total_run_time, 3UL);
+	EXPECT_EQ(result.total_run_time, 0UL);
 	EXPECT_NEAR(result.average_waiting_time, 0.00, 0.01);
 	EXPECT_NEAR(result.average_turnaround_time, 0.00, 0.01);
 	
@@ -181,7 +181,7 @@ TEST (first_come_first_serve, GapsINArrivalTimes)
 	
 	EXPECT_EQ(true,first_come_first_serve(ready_queue, &result));
 	
-	EXPECT_EQ(result.total_run_time, 24UL);
+	EXPECT_EQ(result.total_run_time, 12UL);
 	EXPECT_NEAR(result.average_waiting_time, 0.00, 0.01);
 	EXPECT_NEAR(result.average_turnaround_time, 4.00, 0.01);
 	
@@ -440,7 +440,7 @@ TEST (priority, SamePrioritiesSameArrival) // basically doing FCFS algorithm
 	
 	EXPECT_EQ(true,priority(ready_queue, &result));
 	
-	EXPECT_EQ(result.total_run_time, 17UL);
+	EXPECT_EQ(result.total_run_time, 16UL);
 	EXPECT_NEAR(result.average_waiting_time, 4.33, 0.01);
 	EXPECT_NEAR(result.average_turnaround_time, 9.67, 0.01);
 	
@@ -546,7 +546,7 @@ TEST (priority, LateArrivingHighPriority) // tests non-preemption
 	
 	EXPECT_EQ(true,priority(ready_queue, &result));
 	
-	EXPECT_EQ(result.total_run_time, 22UL);
+	EXPECT_EQ(result.total_run_time, 12UL);
 	EXPECT_NEAR(result.average_waiting_time, 0.67, 0.01);
 	EXPECT_NEAR(result.average_turnaround_time, 4.67, 0.01);
 	
