@@ -12,6 +12,7 @@ project(hw2)
 set(CMAKE_C_FLAGS "-std=c11 -Wall -Wextra -Wshadow -Werror")
 set(CMAKE_CXX_FLAGS "-std=c++11 -Wall -Wextra -Wshadow -Werror")
 
+
 # Add our include directory to CMake's search paths
 # THIS IS REQUIRED
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -23,6 +24,10 @@ add_library(dyn_array STATIC src/dyn_array.c)
 # Compile the analysis executable
 add_executable(analysis src/analysis.c src/process_scheduling.c)
 
+add_custom_command(
+    TARGET analysis POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/pcb.bin ${CMAKE_BINARY_DIR}/pcb.bin
+)
 
 # link the dyn_array library we compiled against our analysis executable
 target_link_libraries(analysis PUBLIC dyn_array)
