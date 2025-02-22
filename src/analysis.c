@@ -21,11 +21,12 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 	
-	// Load process control blocks from binary file passed at the command line into a dyn_array (this is your ready queue).
+	// Load process control blocks from binary file passed at the command line into a dyn_array (this is your ready queue)
 	char* file = argv[1];
 	dyn_array_t* ready_queue = load_process_control_blocks(file);
 	if (ready_queue == NULL)
 	{
+		printf("Error loading file\n");
 		return EXIT_FAILURE;
 	}
 

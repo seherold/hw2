@@ -48,6 +48,10 @@ TEST (first_come_first_serve, ResultNULL)
 	dyn_array_destroy(ready_queue);
 }
 
+/*
+*  Test related to empty queue
+**/
+
 // if dyn_array_size(ready_queue) == 0
 TEST (first_come_first_serve, ZeroSizeArray) 
 {
@@ -347,6 +351,10 @@ TEST (round_robin, BadParams)
 *  Priority UNIT TEST CASES
 **/
 
+/*
+*  Tests related to invalid parameters
+**/
+
 // if ready_queue == NULL
 TEST (priority, ReadyQueueNULL) 
 {
@@ -373,6 +381,10 @@ TEST (priority, ResultNULL)
 	dyn_array_destroy(ready_queue);
 }
 
+/*
+*  Test related to empty queue
+**/
+
 // if dyn_array_size(ready_queue) == 0
 TEST (priority, ZeroSizeArray) 
 {
@@ -386,6 +398,10 @@ TEST (priority, ZeroSizeArray)
 	
 	dyn_array_destroy(ready_queue);
 }
+
+/*
+*  Tests related to one process -- how does priority handle just one process?
+**/
 
 TEST (priority, OneProcess) // tests for just one process
 {
@@ -406,6 +422,10 @@ TEST (priority, OneProcess) // tests for just one process
 	dyn_array_destroy(ready_queue);
 }
 
+/*
+*  Tests related to burst time -- priority should ignore and still sort by priority time
+**/
+
 TEST (priority, OneProcessZeroBurstTime) // tests for if we have zero burst time
 {
 	ProcessControlBlock_t newPCB1 = {.remaining_burst_time = 0, .priority = 1, .arrival = 0, .started = false};
@@ -424,6 +444,10 @@ TEST (priority, OneProcessZeroBurstTime) // tests for if we have zero burst time
 	
 	dyn_array_destroy(ready_queue);
 }
+
+/*
+*  Tests related to arrival time -- priority should ignore and still sort by priority
+**/
 
 TEST (priority, SamePrioritiesDiffArrival) // basically doing FCFS algorithm
 {
@@ -470,6 +494,33 @@ TEST (priority, SamePrioritiesSameArrival) // basically doing FCFS algorithm
 	
 	dyn_array_destroy(ready_queue);
 }
+
+TEST (priority, LateArrivingHighPriority) // tests non-preemption
+{
+	ProcessControlBlock_t newPCB1 = {.remaining_burst_time = 4, .priority = 2, .arrival = 0, .started = false};
+	ProcessControlBlock_t newPCB2 = {.remaining_burst_time = 2, .priority = 1, .arrival = 20, .started = false};
+	ProcessControlBlock_t newPCB3 = {.remaining_burst_time = 6, .priority = 3, .arrival = 2, .started = false};
+	
+	dyn_array_t* ready_queue = dyn_array_create(3, sizeof(ProcessControlBlock_t), NULL);
+	
+	dyn_array_push_back(ready_queue, &newPCB1);
+	dyn_array_push_back(ready_queue, &newPCB2);
+	dyn_array_push_back(ready_queue, &newPCB3);
+	
+	ScheduleResult_t result = {.average_waiting_time = 0, .average_turnaround_time = 0, .total_run_time = 0};
+	
+	EXPECT_EQ(true,priority(ready_queue, &result));
+	
+	EXPECT_EQ(result.total_run_time, 12UL);
+	EXPECT_NEAR(result.average_waiting_time, 0.67, 0.01);
+	EXPECT_NEAR(result.average_turnaround_time, 4.67, 0.01);
+	
+	dyn_array_destroy(ready_queue);
+}
+
+/*
+*  Tests related to priority -- what priority is really looking at
+**/
 
 TEST (priority, DifferentPrioritiesSameArrival) // should be actually doing the priority algorithm because each process is given a different priority
 {
@@ -550,29 +601,6 @@ TEST (priority, DifferentPrioritiesDiffArrivalLong) // tests with more than 3 pr
 	EXPECT_EQ(result.total_run_time, 63UL);
 	EXPECT_NEAR(result.average_waiting_time, 12.60, 0.01);
 	EXPECT_NEAR(result.average_turnaround_time, 18.90, 0.01);
-	
-	dyn_array_destroy(ready_queue);
-}
-
-TEST (priority, LateArrivingHighPriority) // tests non-preemption
-{
-	ProcessControlBlock_t newPCB1 = {.remaining_burst_time = 4, .priority = 2, .arrival = 0, .started = false};
-	ProcessControlBlock_t newPCB2 = {.remaining_burst_time = 2, .priority = 1, .arrival = 20, .started = false};
-	ProcessControlBlock_t newPCB3 = {.remaining_burst_time = 6, .priority = 3, .arrival = 2, .started = false};
-	
-	dyn_array_t* ready_queue = dyn_array_create(3, sizeof(ProcessControlBlock_t), NULL);
-	
-	dyn_array_push_back(ready_queue, &newPCB1);
-	dyn_array_push_back(ready_queue, &newPCB2);
-	dyn_array_push_back(ready_queue, &newPCB3);
-	
-	ScheduleResult_t result = {.average_waiting_time = 0, .average_turnaround_time = 0, .total_run_time = 0};
-	
-	EXPECT_EQ(true,priority(ready_queue, &result));
-	
-	EXPECT_EQ(result.total_run_time, 12UL);
-	EXPECT_NEAR(result.average_waiting_time, 0.67, 0.01);
-	EXPECT_NEAR(result.average_turnaround_time, 4.67, 0.01);
 	
 	dyn_array_destroy(ready_queue);
 }
