@@ -653,14 +653,26 @@ TEST (shortest_remaining_time_first, ZeroSizeArray)
 *  LOAD PROCESS CONTROL BLOCKS UNIT TEST CASES
 **/
 
+/*
+*  Tests related to invalid parameters
+**/
+
 // if the filename is NULL
 TEST (load_process_control_blocks, fileNULL) 
 {
 	EXPECT_EQ(NULL,load_process_control_blocks(NULL));
 }
 
-// corrupt or malformed file types
-//empty file
+// if the file doesn't exist
+TEST (load_process_control_blocks, fileDNE) 
+{
+	EXPECT_EQ(NULL,load_process_control_blocks("fileDNE.bin"));
+}
+
+/*
+*  Tests related to corrupt or malformed file types
+**/
+
 TEST (load_process_control_blocks, emptyFile) 
 {
 	FILE *fptr = fopen("test.bin", "wb");
@@ -669,12 +681,12 @@ TEST (load_process_control_blocks, emptyFile)
 	remove("test.bin");
 }
 
-//test file too short, should at least have 4 bytes for N even if N=0
+// test file too short, should at least have 4 bytes for N even if N=0
 TEST (load_process_control_blocks, fileTooShort) 
 {
 	FILE *fptr = fopen("test.bin", "wb");
 	uint16_t testNum = 24;
-	fwrite(&testNum, sizeof(uint16_t), 1, fptr);
+	fwrite(&testNum, sizeof(uint16_t), 1, fptr); // only write 2 bytes to the file
 	fclose(fptr);
 	EXPECT_EQ(NULL,load_process_control_blocks("test.bin"));
 	remove("test.bin");
@@ -750,7 +762,7 @@ TEST (load_process_control_blocks, tooManyIntegers)
 	remove("test.bin");
 }
 
-//EOF, fread() fails
+//EOF, fread() fails, NEEDS WORK
 TEST (load_process_control_blocks, EOFFailure) 
 {
 	FILE *fptr = fopen("test.bin", "wb");
@@ -770,7 +782,117 @@ TEST (load_process_control_blocks, EOFFailure)
 	remove("test.bin");
 }
 
-//Zero processes, N=0
+/*
+*  Tests related to file containing bad data, negative # of pcbs, negative burst time, negative arrival time, non-positive priority
+**/
+
+/*
+// negative number of pcbs
+TEST (load_process_control_blocks, negativeN) 
+{
+	FILE *fptr = fopen("test.bin", "wb");
+	
+	uint32_t N = -1;
+	fwrite(&N, sizeof(uint32_t), 1, fptr);
+
+	fclose(fptr);
+
+	EXPECT_EQ(NULL,load_process_control_blocks("test.bin"));
+	remove("test.bin");
+}
+
+// negative burst time
+TEST (load_process_control_blocks, negativeBurstTime) 
+{
+	FILE *fptr = fopen("test.bin", "wb");
+	
+	uint32_t N = 1;
+	fwrite(&N, sizeof(uint32_t), 1, fptr);
+
+	uint32_t P1remaining_burst_time = -2;
+	fwrite(&P1remaining_burst_time, sizeof(uint32_t), 1, fptr);
+	uint32_t P1priority = 5;
+	fwrite(&P1priority, sizeof(uint32_t), 1, fptr);
+	uint32_t P1arrival = 3;
+	fwrite(&P1arrival, sizeof(uint32_t), 1, fptr);
+
+	fclose(fptr);
+
+	EXPECT_EQ(NULL,load_process_control_blocks("test.bin"));
+	remove("test.bin");
+}
+
+// negative arrival time
+TEST (load_process_control_blocks, negativeArrivalTime) 
+{
+	FILE *fptr = fopen("test.bin", "wb");
+	
+	uint32_t N = 1;
+	fwrite(&N, sizeof(uint32_t), 1, fptr);
+
+	uint32_t P1remaining_burst_time = 2;
+	fwrite(&P1remaining_burst_time, sizeof(uint32_t), 1, fptr);
+	uint32_t P1priority = 5;
+	fwrite(&P1priority, sizeof(uint32_t), 1, fptr);
+	uint32_t P1arrival = -3;
+	fwrite(&P1arrival, sizeof(uint32_t), 1, fptr);
+
+	fclose(fptr);
+
+	EXPECT_EQ(NULL,load_process_control_blocks("test.bin"));
+	remove("test.bin");
+}
+*/
+
+// priority = 0
+TEST (load_process_control_blocks, zeroPriority) 
+{
+	FILE *fptr = fopen("test.bin", "wb");
+	
+	uint32_t N = 1;
+	fwrite(&N, sizeof(uint32_t), 1, fptr);
+
+	uint32_t P1remaining_burst_time = 2;
+	fwrite(&P1remaining_burst_time, sizeof(uint32_t), 1, fptr);
+	uint32_t P1priority = 0;
+	fwrite(&P1priority, sizeof(uint32_t), 1, fptr);
+	uint32_t P1arrival = 3;
+	fwrite(&P1arrival, sizeof(uint32_t), 1, fptr);
+
+	fclose(fptr);
+
+	EXPECT_EQ(NULL,load_process_control_blocks("test.bin"));
+	remove("test.bin");
+}
+
+/*
+// negative priority
+TEST (load_process_control_blocks, negativePriority) 
+{
+	FILE *fptr = fopen("test.bin", "wb");
+	
+	uint32_t N = 1;
+	fwrite(&N, sizeof(uint32_t), 1, fptr);
+
+	uint32_t P1remaining_burst_time = 2;
+	fwrite(&P1remaining_burst_time, sizeof(uint32_t), 1, fptr);
+	uint32_t P1priority = -1;
+	fwrite(&P1priority, sizeof(uint32_t), 1, fptr);
+	uint32_t P1arrival = 3;
+	fwrite(&P1arrival, sizeof(uint32_t), 1, fptr);
+
+	fclose(fptr);
+
+	EXPECT_EQ(NULL,load_process_control_blocks("test.bin"));
+	remove("test.bin");
+}
+*/
+
+
+/*
+*  Tests related to zero processes in a valid binary file, N=0
+**/
+
 TEST (load_process_control_blocks, zeroProcesses) 
 {
 	FILE *fptr = fopen("test.bin", "wb");
@@ -789,7 +911,10 @@ TEST (load_process_control_blocks, zeroProcesses)
 	remove("test.bin");
 }
 
-//One processes, N=1
+/*
+*  Tests related to one process in a valid binary file, N=1
+**/
+
 TEST (load_process_control_blocks, oneProcess) 
 {
 	FILE *fptr = fopen("test.bin", "wb");
@@ -822,15 +947,18 @@ TEST (load_process_control_blocks, oneProcess)
 	remove("test.bin");
 }
 
-//Valid Binary File
-TEST (load_process_control_blocks, validFile10Processes) 
+/*
+*  Tests related to multiple processes in a valid binary file, N = 10
+**/
+
+TEST (load_process_control_blocks, multipleProcesses) 
 {
 	FILE *fptr = fopen("test.bin", "wb");
 	
 	uint32_t N = 10;
 	fwrite(&N, sizeof(uint32_t), 1, fptr);
 
-	uint32_t burst_times[10] = {2, 3, 7, 9, 6, 15, 8, 3, 6, 9};
+	uint32_t burst_times[10] = {2, 3, 7, 9, 0, 15, 8, 3, 6, 9};
 	uint32_t priorities[10] = {5, 6, 4, 5, 10, 1, 9, 4, 7, 8};
 	uint32_t arrivals[10] = {3, 8, 2, 1, 30, 4, 10, 5, 8, 9};
 
@@ -865,7 +993,6 @@ TEST (load_process_control_blocks, validFile10Processes)
 
 
 //Large File (Stress Test)	✅ Successfully loads all records without memory issues
-//File with Max Priority & Arrival Time	✅ Handles large values without corruption
 
 
 

@@ -359,6 +359,12 @@ dyn_array_t *load_process_control_blocks(const char *input_file)
 
 	if (fread(&numPCBs, sizeof(uint32_t), 1, fptr) == 1)
 	{
+		/*if (numPCBs < 0)
+		{
+			fclose(fptr);
+			return NULL;	
+		}*/
+
 		dyn_array_t* pcbArray = dyn_array_create(numPCBs, sizeof(ProcessControlBlock_t), NULL);
 
 		if (pcbArray == NULL)
@@ -375,6 +381,20 @@ dyn_array_t *load_process_control_blocks(const char *input_file)
 			fread(&pcb.priority, sizeof(uint32_t), 1, fptr) == 1 &&
 			fread(&pcb.arrival, sizeof(uint32_t), 1, fptr) == 1)
 			{
+				/*if (pcb.remaining_burst_time < 0 || pcb.priority <= 0 || pcb.arrival < 0)
+				{
+					dyn_array_destroy(pcbArray);
+					fclose(fptr);
+					return NULL;	
+				}*/
+
+				if (pcb.priority == 0)
+				{
+					dyn_array_destroy(pcbArray);
+					fclose(fptr);
+					return NULL;
+				}
+
 				if(dyn_array_push_back(pcbArray,&pcb) == false)
 				{
 					dyn_array_destroy(pcbArray);
