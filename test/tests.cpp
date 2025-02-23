@@ -692,6 +692,23 @@ TEST (load_process_control_blocks, fileTooShort)
 	remove("test.bin");
 }
 
+//N is DYN_MAX_CAPACITY, NEEDS WORK
+/*TEST (load_process_control_blocks, fileTooShort) 
+{
+	FILE *fptr = fopen("test.bin", "wb");
+	size_t NLarge = DYN_MAX_CAPACITY;
+	fwrite(&NLarge, sizeof(size_t), 1, fptr);
+	fclose(fptr);
+	
+	dyn_array_t * array = load_process_control_blocks("test.bin");
+
+	ASSERT_NE(array, nullptr); // array is not null
+	EXPECT_EQ(dyn_array_size(array), static_cast<size_t>(DYN_MAX_CAPACITY));
+
+	dyn_array_destroy(array);
+	remove("test.bin");
+}*/
+
 //N is larger than DYN_MAX_CAPACITY, NEEDS WORK
 /*TEST (load_process_control_blocks, fileTooShort) 
 {
@@ -762,7 +779,7 @@ TEST (load_process_control_blocks, tooManyIntegers)
 	remove("test.bin");
 }
 
-//EOF, fread() fails, NEEDS WORK
+//EOF, fread() fails, NEEDS WORK, not understanding this
 TEST (load_process_control_blocks, EOFFailure) 
 {
 	FILE *fptr = fopen("test.bin", "wb");
@@ -862,6 +879,39 @@ TEST (load_process_control_blocks, zeroPriority)
 	fclose(fptr);
 
 	EXPECT_EQ(NULL,load_process_control_blocks("test.bin"));
+	remove("test.bin");
+}
+
+// priority = 1, smallest number for priority is accepted, this test and the last ensure non-negative values are accepted for priority
+TEST (load_process_control_blocks, priorityOne) 
+{
+	FILE *fptr = fopen("test.bin", "wb");
+	
+	uint32_t N = 1;
+	fwrite(&N, sizeof(uint32_t), 1, fptr);
+
+	uint32_t P1remaining_burst_time = 2;
+	fwrite(&P1remaining_burst_time, sizeof(uint32_t), 1, fptr);
+	uint32_t P1priority = 1;
+	fwrite(&P1priority, sizeof(uint32_t), 1, fptr);
+	uint32_t P1arrival = 3;
+	fwrite(&P1arrival, sizeof(uint32_t), 1, fptr);
+
+	fclose(fptr);
+
+	dyn_array_t * array = load_process_control_blocks("test.bin");
+
+	ASSERT_NE(array, nullptr); // array is not null
+	EXPECT_EQ(dyn_array_size(array), static_cast<size_t>(1)); // array has 1 process
+
+	ProcessControlBlock_t* pcb = (ProcessControlBlock_t *)dyn_array_at(array,0);
+
+	EXPECT_EQ(P1remaining_burst_time, pcb->remaining_burst_time);
+	EXPECT_EQ(P1priority, pcb->priority);
+	EXPECT_EQ(P1arrival, pcb->arrival);
+	EXPECT_FALSE(pcb->started);
+
+	dyn_array_destroy(array);
 	remove("test.bin");
 }
 
@@ -990,9 +1040,6 @@ TEST (load_process_control_blocks, multipleProcesses)
 	dyn_array_destroy(array);
 	remove("test.bin");
 }
-
-
-//Large File (Stress Test)	✅ Successfully loads all records without memory issues
 
 
 
