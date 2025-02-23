@@ -692,34 +692,6 @@ TEST (load_process_control_blocks, fileTooShort)
 	remove("test.bin");
 }
 
-//N is DYN_MAX_CAPACITY, NEEDS WORK
-/*TEST (load_process_control_blocks, fileTooShort) 
-{
-	FILE *fptr = fopen("test.bin", "wb");
-	size_t NLarge = DYN_MAX_CAPACITY;
-	fwrite(&NLarge, sizeof(size_t), 1, fptr);
-	fclose(fptr);
-	
-	dyn_array_t * array = load_process_control_blocks("test.bin");
-
-	ASSERT_NE(array, nullptr); // array is not null
-	EXPECT_EQ(dyn_array_size(array), static_cast<size_t>(DYN_MAX_CAPACITY));
-
-	dyn_array_destroy(array);
-	remove("test.bin");
-}*/
-
-//N is larger than DYN_MAX_CAPACITY, NEEDS WORK
-/*TEST (load_process_control_blocks, fileTooShort) 
-{
-	FILE *fptr = fopen("test.bin", "wb");
-	size_t NLarge = DYN_MAX_CAPACITY + 1;
-	fwrite(&NLarge, sizeof(size_t), 1, fptr);
-	fclose(fptr);
-	EXPECT_EQ(NULL,load_process_control_blocks("test.bin"));
-	remove("test.bin");
-}*/
-
 //The PCB file is composed of LESS than 1+(3*N) 32-bit integers
 TEST (load_process_control_blocks, tooFewIntegers) 
 {
@@ -1041,6 +1013,7 @@ TEST (load_process_control_blocks, multipleProcesses)
 	remove("test.bin");
 }
 
+// large amount of pcbs test?
 
 
 
