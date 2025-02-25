@@ -1109,6 +1109,29 @@ TEST (shortest_remaining_time_first, ZeroSizeArray)
 	dyn_array_destroy(ready_queue);
 }
 
+TEST(shortest_remaining_time_first, ShortestArrivesFirst)
+{
+	ProcessControlBlock_t newPCB1 = {.remaining_burst_time = 3, .priority = 2, .arrival = 0, .times_processed = 0, .started = false};
+	ProcessControlBlock_t newPCB2 = {.remaining_burst_time = 4, .priority = 1, .arrival = 1, .times_processed = 0, .started = false};
+	ProcessControlBlock_t newPCB3 = {.remaining_burst_time = 6, .priority = 3, .arrival = 3, .times_processed = 0, .started = false};
+	
+	dyn_array_t* ready_queue = dyn_array_create(3, sizeof(ProcessControlBlock_t), NULL);
+	
+	dyn_array_push_back(ready_queue, &newPCB1);
+	dyn_array_push_back(ready_queue, &newPCB2);
+	dyn_array_push_back(ready_queue, &newPCB3);
+	
+	ScheduleResult_t result = {.average_waiting_time = 0, .average_turnaround_time = 0, .total_run_time = 0};
+	
+	EXPECT_EQ(true, shortest_remaining_time_first(ready_queue, &result));
+	
+	EXPECT_EQ(result.total_run_time, 13UL);
+	EXPECT_NEAR(result.average_waiting_time, 2.00, 0.01);
+	EXPECT_NEAR(result.average_turnaround_time, 6.33, 0.01);
+	
+	dyn_array_destroy(ready_queue);
+}
+
 
 /*
 *  LOAD PROCESS CONTROL BLOCKS UNIT TEST CASES

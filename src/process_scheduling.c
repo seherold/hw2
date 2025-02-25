@@ -603,7 +603,94 @@ dyn_array_t *load_process_control_blocks(const char *input_file)
 // \return true if function ran successful else false for an error
 bool shortest_remaining_time_first(dyn_array_t *ready_queue, ScheduleResult_t *result) 
 {
-	UNUSED(ready_queue);
-	UNUSED(result);
-	return false;
+	if(ready_queue == NULL || result == NULL || dyn_array_empty(ready_queue))
+    {
+        return false;
+    }
+    //Change this 
+    //ProcessControlBlock_t *pcb = (ProcessControlBlock_t *)dyn_array_export(ready_queue); //DEBUG
+    if (dyn_array_sort(ready_queue, compareByArrival) == false)
+	{
+		return false;
+	}
+
+	ProcessControlBlock_t* pcb = (ProcessControlBlock_t*)dyn_array_front(ready_queue);
+	if (pcb == NULL)
+	{
+		return false;
+	}
+	
+	
+    uint32_t current_time = 0;
+    uint32_t total_waiting_time = 0;
+    uint32_t total_turnaround_time = 0;
+    
+    
+    size_t length = dyn_array_size(ready_queue);
+    uint32_t remaining_time[length];
+    bool started[length];
+    memset(started, 0, sizeof(started));
+    size_t num_completed = 0;
+    
+    //get the total time needed to run all processes
+    for (size_t i = 0; i < length; i++) 
+    {
+        if(pcb[i].priority <= 0)
+        {
+            return false;
+        }
+        remaining_time[i] = pcb[i].remaining_burst_time;
+        result->total_run_time += pcb[i].remaining_burst_time;
+    }
+    
+    
+    
+    
+    while(num_completed < length)
+    {
+        uint32_t  min_remaining_time = UINT32_MAX;
+        uint32_t shortest_loc = 0;
+        bool shortest_found = false;
+        for(size_t i = 0; i < length; i++)
+        {
+            if (pcb[i].arrival <= current_time && remaining_time[i] > 0)
+            {
+                if(remaining_time[i] < min_remaining_time)
+                {
+                    min_remaining_time = remaining_time[i];
+                    shortest_loc = i;
+                    shortest_found = true;
+                }
+                
+            }
+        }
+        
+        
+        if (!shortest_found)
+        {
+            current_time++;
+            continue;
+        }
+        
+        if(!started[shortest_loc])
+        {
+            started[shortest_loc] = true;
+            total_waiting_time += current_time - pcb[shortest_loc].arrival;
+            pcb->started = true;
+        }
+        remaining_time[shortest_loc]--;
+        current_time++;
+        if (remaining_time[shortest_loc] == 0) 
+        {
+            num_completed++;
+            total_turnaround_time += current_time - pcb[shortest_loc].arrival;
+        }
+    }//dont count idle time 
+    
+    result->average_waiting_time = (float)total_waiting_time / length;
+    result->average_turnaround_time = (float)total_turnaround_time / length;
+    
+
+
+	return true;
 }
