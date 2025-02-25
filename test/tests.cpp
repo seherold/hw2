@@ -27,6 +27,10 @@ TEST (first_come_first_serve, ReadyQueueNULL)
 {
 	ScheduleResult_t result = {.average_waiting_time = 0, .average_turnaround_time = 0, .total_run_time = 0};
 	EXPECT_EQ(false,first_come_first_serve(NULL, &result));
+
+	EXPECT_EQ(result.total_run_time, 0UL);
+	EXPECT_NEAR(result.average_waiting_time, 0.00, 0.01);
+	EXPECT_NEAR(result.average_turnaround_time, 0.00, 0.01);
 }
 
 
@@ -48,6 +52,31 @@ TEST (first_come_first_serve, ResultNULL)
 	dyn_array_destroy(ready_queue);
 }
 
+// priority = 0, ready_queue contains "bad" data, priority is a positive integer
+TEST (first_come_first_serve, ZeroPriority)
+{
+	ProcessControlBlock_t newPCB1 = {.remaining_burst_time = 5, .priority = 1, .arrival = 0, .started = false};
+	ProcessControlBlock_t newPCB2 = {.remaining_burst_time = 3, .priority = 0, .arrival = 1, .started = false};
+	ProcessControlBlock_t newPCB3 = {.remaining_burst_time = 4, .priority = 2, .arrival = 2, .started = false};
+	
+	dyn_array_t* ready_queue = dyn_array_create(3, sizeof(ProcessControlBlock_t), NULL);
+	
+	dyn_array_push_back(ready_queue, &newPCB1);
+	dyn_array_push_back(ready_queue, &newPCB2);
+	dyn_array_push_back(ready_queue, &newPCB3);
+	
+	ScheduleResult_t result = {.average_waiting_time = 0, .average_turnaround_time = 0, .total_run_time = 0};
+	
+	EXPECT_EQ(false,first_come_first_serve(ready_queue, &result));
+
+	EXPECT_EQ(result.total_run_time, 0UL);
+	EXPECT_NEAR(result.average_waiting_time, 0.00, 0.01);
+	EXPECT_NEAR(result.average_turnaround_time, 0.00, 0.01);
+	
+	dyn_array_destroy(ready_queue);
+}
+
+
 /*
 *  Test related to empty queue
 **/
@@ -62,6 +91,10 @@ TEST (first_come_first_serve, ZeroSizeArray)
 	ScheduleResult_t result = {.average_waiting_time = 0, .average_turnaround_time = 0, .total_run_time = 0};
 	
 	EXPECT_EQ(false,first_come_first_serve(ready_queue, &result));
+
+	EXPECT_EQ(result.total_run_time, 0UL);
+	EXPECT_NEAR(result.average_waiting_time, 0.00, 0.01);
+	EXPECT_NEAR(result.average_turnaround_time, 0.00, 0.01);
 	
 	dyn_array_destroy(ready_queue);
 }
@@ -265,10 +298,20 @@ TEST (first_come_first_serve, IgnoringDifferentPriorities)
 /*
 *  Shortest Job First UNIT TEST CASES
 **/
+
+/*
+*  Tests related to invalid parameters
+**/
+
+// if ready_queue == NULL
 TEST (shortest_job_first, ReadyQueueNULL) 
 {
 	ScheduleResult_t result = {.average_waiting_time = 0, .average_turnaround_time = 0, .total_run_time = 0};
 	EXPECT_EQ(false,shortest_job_first(NULL, &result));
+
+	EXPECT_EQ(result.total_run_time, 0UL);
+	EXPECT_NEAR(result.average_waiting_time, 0.00, 0.01);
+	EXPECT_NEAR(result.average_turnaround_time, 0.00, 0.01);
 }
 
 
@@ -290,6 +333,35 @@ TEST (shortest_job_first, ResultNULL)
 	dyn_array_destroy(ready_queue);
 }
 
+
+// priority = 0, ready_queue contains "bad" data, priority is a positive integer
+TEST (shortest_job_first, ZeroPriority)
+{
+	ProcessControlBlock_t newPCB1 = {.remaining_burst_time = 5, .priority = 1, .arrival = 0, .started = false};
+	ProcessControlBlock_t newPCB2 = {.remaining_burst_time = 3, .priority = 0, .arrival = 1, .started = false};
+	ProcessControlBlock_t newPCB3 = {.remaining_burst_time = 4, .priority = 2, .arrival = 2, .started = false};
+	
+	dyn_array_t* ready_queue = dyn_array_create(3, sizeof(ProcessControlBlock_t), NULL);
+	
+	dyn_array_push_back(ready_queue, &newPCB1);
+	dyn_array_push_back(ready_queue, &newPCB2);
+	dyn_array_push_back(ready_queue, &newPCB3);
+	
+	ScheduleResult_t result = {.average_waiting_time = 0, .average_turnaround_time = 0, .total_run_time = 0};
+	
+	EXPECT_EQ(false,shortest_job_first(ready_queue, &result));
+
+	EXPECT_EQ(result.total_run_time, 0UL);
+	EXPECT_NEAR(result.average_waiting_time, 0.00, 0.01);
+	EXPECT_NEAR(result.average_turnaround_time, 0.00, 0.01);
+	
+	dyn_array_destroy(ready_queue);
+}
+
+/*
+*  Test related to empty queue
+**/
+
 // if dyn_array_size(ready_queue) == 0
 TEST (shortest_job_first, ZeroSizeArray) 
 {
@@ -300,6 +372,171 @@ TEST (shortest_job_first, ZeroSizeArray)
 	ScheduleResult_t result = {.average_waiting_time = 0, .average_turnaround_time = 0, .total_run_time = 0};
 	
 	EXPECT_EQ(false,shortest_job_first(ready_queue, &result));
+
+	EXPECT_EQ(result.total_run_time, 0UL);
+	EXPECT_NEAR(result.average_waiting_time, 0.00, 0.01);
+	EXPECT_NEAR(result.average_turnaround_time, 0.00, 0.01);
+	
+	dyn_array_destroy(ready_queue);
+}
+
+/*
+*  Tests related to one process -- how does SRT handle just one process?
+**/
+
+TEST (shortest_job_first, OneProcess) // tests for just one process
+{
+	ProcessControlBlock_t newPCB1 = {.remaining_burst_time = 5, .priority = 1, .arrival = 0, .started = false};
+	
+	dyn_array_t* ready_queue = dyn_array_create(1, sizeof(ProcessControlBlock_t), NULL);
+	
+	dyn_array_push_back(ready_queue, &newPCB1);
+	
+	ScheduleResult_t result = {.average_waiting_time = 0, .average_turnaround_time = 0, .total_run_time = 0};
+	
+	EXPECT_EQ(true,shortest_job_first(ready_queue, &result));
+	
+	EXPECT_EQ(result.total_run_time, 5UL);
+	EXPECT_NEAR(result.average_waiting_time, 0.00, 0.01);
+	EXPECT_NEAR(result.average_turnaround_time, 5.00, 0.01);
+	
+	dyn_array_destroy(ready_queue);
+}
+
+/*
+*  Tests related to arrival time and priority in different combinations -- SRT should ignore and still sort by remaining burst time
+**/
+
+TEST (shortest_job_first, DiffArrivalSamePriority) // should do schedule according to SRT
+{
+	ProcessControlBlock_t newPCB1 = {.remaining_burst_time = 3, .priority = 1, .arrival = 0, .started = false};
+	ProcessControlBlock_t newPCB2 = {.remaining_burst_time = 8, .priority = 1, .arrival = 1, .started = false};
+	ProcessControlBlock_t newPCB3 = {.remaining_burst_time = 5, .priority = 1, .arrival = 2, .started = false};
+	
+	dyn_array_t* ready_queue = dyn_array_create(3, sizeof(ProcessControlBlock_t), NULL);
+	
+	dyn_array_push_back(ready_queue, &newPCB1);
+	dyn_array_push_back(ready_queue, &newPCB2);
+	dyn_array_push_back(ready_queue, &newPCB3);
+	
+	ScheduleResult_t result = {.average_waiting_time = 0, .average_turnaround_time = 0, .total_run_time = 0};
+	
+	EXPECT_EQ(true,shortest_job_first(ready_queue, &result));
+	
+	EXPECT_EQ(result.total_run_time, 16UL);
+	EXPECT_NEAR(result.average_waiting_time, 2.67, 0.01);
+	EXPECT_NEAR(result.average_turnaround_time, 8.00, 0.01);
+	
+	dyn_array_destroy(ready_queue);
+}
+
+TEST (shortest_job_first, SameArrivalDiffPriority) // should do schedule according to SRT
+{
+	ProcessControlBlock_t newPCB1 = {.remaining_burst_time = 3, .priority = 1, .arrival = 0, .started = false};
+	ProcessControlBlock_t newPCB2 = {.remaining_burst_time = 8, .priority = 2, .arrival = 0, .started = false};
+	ProcessControlBlock_t newPCB3 = {.remaining_burst_time = 5, .priority = 3, .arrival = 0, .started = false};
+	
+	dyn_array_t* ready_queue = dyn_array_create(3, sizeof(ProcessControlBlock_t), NULL);
+	
+	dyn_array_push_back(ready_queue, &newPCB1);
+	dyn_array_push_back(ready_queue, &newPCB2);
+	dyn_array_push_back(ready_queue, &newPCB3);
+	
+	ScheduleResult_t result = {.average_waiting_time = 0, .average_turnaround_time = 0, .total_run_time = 0};
+	
+	EXPECT_EQ(true,shortest_job_first(ready_queue, &result));
+	
+	EXPECT_EQ(result.total_run_time, 16UL);
+	EXPECT_NEAR(result.average_waiting_time, 3.67, 0.01);
+	EXPECT_NEAR(result.average_turnaround_time, 9.00, 0.01);
+	
+	dyn_array_destroy(ready_queue);
+}
+
+TEST (shortest_job_first, SameArrivalSamePriority) // should do schedule according to SRT
+{
+	ProcessControlBlock_t newPCB1 = {.remaining_burst_time = 3, .priority = 1, .arrival = 0, .started = false};
+	ProcessControlBlock_t newPCB2 = {.remaining_burst_time = 8, .priority = 1, .arrival = 0, .started = false};
+	ProcessControlBlock_t newPCB3 = {.remaining_burst_time = 5, .priority = 1, .arrival = 0, .started = false};
+	
+	dyn_array_t* ready_queue = dyn_array_create(3, sizeof(ProcessControlBlock_t), NULL);
+	
+	dyn_array_push_back(ready_queue, &newPCB1);
+	dyn_array_push_back(ready_queue, &newPCB2);
+	dyn_array_push_back(ready_queue, &newPCB3);
+	
+	ScheduleResult_t result = {.average_waiting_time = 0, .average_turnaround_time = 0, .total_run_time = 0};
+	
+	EXPECT_EQ(true,shortest_job_first(ready_queue, &result));
+	
+	EXPECT_EQ(result.total_run_time, 16UL);
+	EXPECT_NEAR(result.average_waiting_time, 3.67, 0.01);
+	EXPECT_NEAR(result.average_turnaround_time, 9.00, 0.01);
+	
+	dyn_array_destroy(ready_queue);
+}
+
+TEST (shortest_job_first, DiffArrivalDiffPriority) // should do schedule according to SRT
+{
+	ProcessControlBlock_t newPCB1 = {.remaining_burst_time = 3, .priority = 1, .arrival = 0, .started = false};
+	ProcessControlBlock_t newPCB2 = {.remaining_burst_time = 8, .priority = 2, .arrival = 1, .started = false};
+	ProcessControlBlock_t newPCB3 = {.remaining_burst_time = 5, .priority = 3, .arrival = 2, .started = false};
+	
+	dyn_array_t* ready_queue = dyn_array_create(3, sizeof(ProcessControlBlock_t), NULL);
+	
+	dyn_array_push_back(ready_queue, &newPCB1);
+	dyn_array_push_back(ready_queue, &newPCB2);
+	dyn_array_push_back(ready_queue, &newPCB3);
+	
+	ScheduleResult_t result = {.average_waiting_time = 0, .average_turnaround_time = 0, .total_run_time = 0};
+	
+	EXPECT_EQ(true,shortest_job_first(ready_queue, &result));
+	
+	EXPECT_EQ(result.total_run_time, 16UL);
+	EXPECT_NEAR(result.average_waiting_time, 2.67, 0.01);
+	EXPECT_NEAR(result.average_turnaround_time, 8.00, 0.01);
+	
+	dyn_array_destroy(ready_queue);
+}
+
+
+/*
+*  Tests related to burst time -- what SRT is really checking
+**/
+
+TEST (shortest_job_first, SRTLong) // tests with more than 3 processes
+{
+	ProcessControlBlock_t newPCB1 = {.remaining_burst_time = 4, .priority = 2, .arrival = 0, .started = false};
+	ProcessControlBlock_t newPCB2 = {.remaining_burst_time = 2, .priority = 1, .arrival = 1, .started = false};
+	ProcessControlBlock_t newPCB3 = {.remaining_burst_time = 6, .priority = 3, .arrival = 3, .started = false};
+	ProcessControlBlock_t newPCB4 = {.remaining_burst_time = 5, .priority = 5, .arrival = 5, .started = false};
+	ProcessControlBlock_t newPCB5 = {.remaining_burst_time = 3, .priority = 4, .arrival = 8, .started = false};
+	ProcessControlBlock_t newPCB6 = {.remaining_burst_time = 7, .priority = 7, .arrival = 10, .started = false};
+	ProcessControlBlock_t newPCB7 = {.remaining_burst_time = 9, .priority = 8, .arrival = 2, .started = false};
+	ProcessControlBlock_t newPCB8 = {.remaining_burst_time = 20, .priority = 10, .arrival = 4, .started = false};
+	ProcessControlBlock_t newPCB9 = {.remaining_burst_time = 5, .priority = 3, .arrival = 6, .started = false};
+	ProcessControlBlock_t newPCB10 = {.remaining_burst_time = 2, .priority = 1, .arrival = 20, .started = false};
+	
+	dyn_array_t* ready_queue = dyn_array_create(10, sizeof(ProcessControlBlock_t), NULL);
+	
+	dyn_array_push_back(ready_queue, &newPCB1);
+	dyn_array_push_back(ready_queue, &newPCB2);
+	dyn_array_push_back(ready_queue, &newPCB3);
+	dyn_array_push_back(ready_queue, &newPCB4);
+	dyn_array_push_back(ready_queue, &newPCB5);
+	dyn_array_push_back(ready_queue, &newPCB6);
+	dyn_array_push_back(ready_queue, &newPCB7);
+	dyn_array_push_back(ready_queue, &newPCB8);
+	dyn_array_push_back(ready_queue, &newPCB9);
+	dyn_array_push_back(ready_queue, &newPCB10);
+
+	ScheduleResult_t result = {.average_waiting_time = 0, .average_turnaround_time = 0, .total_run_time = 0};
+	
+	EXPECT_EQ(true,shortest_job_first(ready_queue, &result));
+	
+	EXPECT_EQ(result.total_run_time, 63UL);
+	EXPECT_NEAR(result.average_waiting_time, 12.40, 0.01);
+	EXPECT_NEAR(result.average_turnaround_time, 18.70, 0.01);
 	
 	dyn_array_destroy(ready_queue);
 }
@@ -337,12 +574,204 @@ TEST (round_robin, BadParams)
     
     dyn_array_t* ready_queue = dyn_array_create(2, sizeof(ProcessControlBlock_t), NULL); //Empty ready_queue
     
-    EXPECT_EQ(false, round_robin(ready_queue, &result, 0)); //If Quantym is zero
+    EXPECT_EQ(false, round_robin(ready_queue, &result, 0)); //If Quantum is zero
     
     EXPECT_EQ(false, round_robin(ready_queue, &result, QUANTUM)); //If Queue is empty
     
     
     dyn_array_destroy(ready_queue);
+}
+
+// priority = 0, ready_queue contains "bad" data, priority is a positive integer
+TEST (round_robin, ZeroPriority)
+{
+	ProcessControlBlock_t newPCB1 = {.remaining_burst_time = 5, .priority = 1, .arrival = 0, .started = false};
+	ProcessControlBlock_t newPCB2 = {.remaining_burst_time = 3, .priority = 0, .arrival = 1, .started = false};
+	ProcessControlBlock_t newPCB3 = {.remaining_burst_time = 4, .priority = 2, .arrival = 2, .started = false};
+	
+	dyn_array_t* ready_queue = dyn_array_create(3, sizeof(ProcessControlBlock_t), NULL);
+	
+	dyn_array_push_back(ready_queue, &newPCB1);
+	dyn_array_push_back(ready_queue, &newPCB2);
+	dyn_array_push_back(ready_queue, &newPCB3);
+	
+	ScheduleResult_t result = {.average_waiting_time = 0, .average_turnaround_time = 0, .total_run_time = 0};
+	
+	EXPECT_EQ(false, round_robin(ready_queue, &result, QUANTUM));
+
+	EXPECT_EQ(result.total_run_time, 0UL);
+	EXPECT_NEAR(result.average_waiting_time, 0.00, 0.01);
+	EXPECT_NEAR(result.average_turnaround_time, 0.00, 0.01);
+	
+	dyn_array_destroy(ready_queue);
+}
+
+
+/*
+*  Tests related to one process -- how does priority handle just one process?
+**/
+
+TEST (round_robin, OneProcess) // tests for just one process
+{
+	ProcessControlBlock_t newPCB1 = {.remaining_burst_time = 5, .priority = 1, .arrival = 0, .started = false};
+	
+	dyn_array_t* ready_queue = dyn_array_create(1, sizeof(ProcessControlBlock_t), NULL);
+	
+	dyn_array_push_back(ready_queue, &newPCB1);
+	
+	ScheduleResult_t result = {.average_waiting_time = 0, .average_turnaround_time = 0, .total_run_time = 0};
+	
+	EXPECT_EQ(true, round_robin(ready_queue, &result, QUANTUM));
+	
+	EXPECT_EQ(result.total_run_time, 5UL);
+	EXPECT_NEAR(result.average_waiting_time, 0.00, 0.01);
+	EXPECT_NEAR(result.average_turnaround_time, 5.00, 0.01);
+	
+	dyn_array_destroy(ready_queue);
+}
+
+/*
+*  Tests related to order of processes placed in the queue  
+RR should sort by arrival first, then worry about the quantum
+So processes arriving "in order" or "out of order" shouldn't make a difference
+**/
+
+TEST (round_robin, DiffArrivalInOrderSamePriority) // should do schedule according to RR
+{
+	ProcessControlBlock_t newPCB1 = {.remaining_burst_time = 5, .priority = 1, .arrival = 0, .started = false};
+	ProcessControlBlock_t newPCB2 = {.remaining_burst_time = 8, .priority = 1, .arrival = 1, .started = false};
+	ProcessControlBlock_t newPCB3 = {.remaining_burst_time = 3, .priority = 1, .arrival = 2, .started = false};
+	
+	dyn_array_t* ready_queue = dyn_array_create(3, sizeof(ProcessControlBlock_t), NULL);
+	
+	dyn_array_push_back(ready_queue, &newPCB1);
+	dyn_array_push_back(ready_queue, &newPCB2);
+	dyn_array_push_back(ready_queue, &newPCB3);
+	
+	ScheduleResult_t result = {.average_waiting_time = 0, .average_turnaround_time = 0, .total_run_time = 0};
+	
+	EXPECT_EQ(true, round_robin(ready_queue, &result, QUANTUM));
+	
+	EXPECT_EQ(result.total_run_time, 16UL);
+	EXPECT_NEAR(result.average_waiting_time, 5.00, 0.01);
+	EXPECT_NEAR(result.average_turnaround_time, 10.33, 0.01);
+	
+	dyn_array_destroy(ready_queue);
+}
+
+TEST (round_robin, DiffArrivalOutOfOrderSamePriority) // should do schedule according to RR
+{
+	ProcessControlBlock_t newPCB1 = {.remaining_burst_time = 5, .priority = 1, .arrival = 1, .started = false};
+	ProcessControlBlock_t newPCB2 = {.remaining_burst_time = 8, .priority = 1, .arrival = 0, .started = false};
+	ProcessControlBlock_t newPCB3 = {.remaining_burst_time = 3, .priority = 1, .arrival = 2, .started = false};
+	
+	dyn_array_t* ready_queue = dyn_array_create(3, sizeof(ProcessControlBlock_t), NULL);
+	
+	dyn_array_push_back(ready_queue, &newPCB1);
+	dyn_array_push_back(ready_queue, &newPCB2);
+	dyn_array_push_back(ready_queue, &newPCB3);
+	
+	ScheduleResult_t result = {.average_waiting_time = 0, .average_turnaround_time = 0, .total_run_time = 0};
+	
+	EXPECT_EQ(true, round_robin(ready_queue, &result, QUANTUM));
+	
+	EXPECT_EQ(result.total_run_time, 16UL);
+	EXPECT_NEAR(result.average_waiting_time, 5.00, 0.01);
+	EXPECT_NEAR(result.average_turnaround_time, 10.33, 0.01);
+	
+	dyn_array_destroy(ready_queue);
+}
+
+/*
+*  Tests related to priority -- RR process should be unaffected by priority
+**/
+
+TEST (round_robin, SameArrivalDiffPriority) // should do schedule according to RR
+{
+	ProcessControlBlock_t newPCB1 = {.remaining_burst_time = 5, .priority = 1, .arrival = 0, .started = false};
+	ProcessControlBlock_t newPCB2 = {.remaining_burst_time = 8, .priority = 2, .arrival = 0, .started = false};
+	ProcessControlBlock_t newPCB3 = {.remaining_burst_time = 3, .priority = 3, .arrival = 0, .started = false};
+	
+	dyn_array_t* ready_queue = dyn_array_create(3, sizeof(ProcessControlBlock_t), NULL);
+	
+	dyn_array_push_back(ready_queue, &newPCB1);
+	dyn_array_push_back(ready_queue, &newPCB2);
+	dyn_array_push_back(ready_queue, &newPCB3);
+	
+	ScheduleResult_t result = {.average_waiting_time = 0, .average_turnaround_time = 0, .total_run_time = 0};
+	
+	EXPECT_EQ(true, round_robin(ready_queue, &result, QUANTUM));
+	
+	EXPECT_EQ(result.total_run_time, 16UL);
+	EXPECT_NEAR(result.average_waiting_time, 6.00, 0.01);
+	EXPECT_NEAR(result.average_turnaround_time, 11.33, 0.01);
+	
+	dyn_array_destroy(ready_queue);
+}
+
+TEST (round_robin, DiffArrivalDiffPriority) // should do schedule according to RR
+{
+	ProcessControlBlock_t newPCB1 = {.remaining_burst_time = 5, .priority = 1, .arrival = 0, .started = false};
+	ProcessControlBlock_t newPCB2 = {.remaining_burst_time = 8, .priority = 2, .arrival = 1, .started = false};
+	ProcessControlBlock_t newPCB3 = {.remaining_burst_time = 3, .priority = 3, .arrival = 2, .started = false};
+	
+	dyn_array_t* ready_queue = dyn_array_create(3, sizeof(ProcessControlBlock_t), NULL);
+	
+	dyn_array_push_back(ready_queue, &newPCB1);
+	dyn_array_push_back(ready_queue, &newPCB2);
+	dyn_array_push_back(ready_queue, &newPCB3);
+	
+	ScheduleResult_t result = {.average_waiting_time = 0, .average_turnaround_time = 0, .total_run_time = 0};
+	
+	EXPECT_EQ(true, round_robin(ready_queue, &result, QUANTUM));
+	
+	EXPECT_EQ(result.total_run_time, 16UL);
+	EXPECT_NEAR(result.average_waiting_time, 5.00, 0.01);
+	EXPECT_NEAR(result.average_turnaround_time, 10.33, 0.01);
+	
+	dyn_array_destroy(ready_queue);
+}
+
+
+/*
+*  Tests related to large sets of processes
+**/
+
+TEST (round_robin, RRLong) // tests with more than 3 processes
+{
+	ProcessControlBlock_t newPCB1 = {.remaining_burst_time = 4, .priority = 2, .arrival = 0, .started = false};
+	ProcessControlBlock_t newPCB2 = {.remaining_burst_time = 2, .priority = 1, .arrival = 1, .started = false};
+	ProcessControlBlock_t newPCB3 = {.remaining_burst_time = 6, .priority = 3, .arrival = 3, .started = false};
+	ProcessControlBlock_t newPCB4 = {.remaining_burst_time = 5, .priority = 5, .arrival = 5, .started = false};
+	ProcessControlBlock_t newPCB5 = {.remaining_burst_time = 3, .priority = 4, .arrival = 8, .started = false};
+	ProcessControlBlock_t newPCB6 = {.remaining_burst_time = 7, .priority = 7, .arrival = 10, .started = false};
+	ProcessControlBlock_t newPCB7 = {.remaining_burst_time = 9, .priority = 8, .arrival = 2, .started = false};
+	ProcessControlBlock_t newPCB8 = {.remaining_burst_time = 20, .priority = 10, .arrival = 4, .started = false};
+	ProcessControlBlock_t newPCB9 = {.remaining_burst_time = 5, .priority = 3, .arrival = 6, .started = false};
+	ProcessControlBlock_t newPCB10 = {.remaining_burst_time = 2, .priority = 1, .arrival = 20, .started = false};
+	
+	dyn_array_t* ready_queue = dyn_array_create(10, sizeof(ProcessControlBlock_t), NULL);
+	
+	dyn_array_push_back(ready_queue, &newPCB1);
+	dyn_array_push_back(ready_queue, &newPCB2);
+	dyn_array_push_back(ready_queue, &newPCB3);
+	dyn_array_push_back(ready_queue, &newPCB4);
+	dyn_array_push_back(ready_queue, &newPCB5);
+	dyn_array_push_back(ready_queue, &newPCB6);
+	dyn_array_push_back(ready_queue, &newPCB7);
+	dyn_array_push_back(ready_queue, &newPCB8);
+	dyn_array_push_back(ready_queue, &newPCB9);
+	dyn_array_push_back(ready_queue, &newPCB10);
+
+	ScheduleResult_t result = {.average_waiting_time = 0, .average_turnaround_time = 0, .total_run_time = 0};
+	
+	EXPECT_EQ(true, round_robin(ready_queue, &result, QUANTUM));
+	
+	EXPECT_EQ(result.total_run_time, 63UL);
+	EXPECT_NEAR(result.average_waiting_time, 20.30, 0.01);
+	EXPECT_NEAR(result.average_turnaround_time, 26.60, 0.01);
+	
+	dyn_array_destroy(ready_queue);
 }
 
 
@@ -360,6 +789,10 @@ TEST (priority, ReadyQueueNULL)
 {
 	ScheduleResult_t result = {.average_waiting_time = 0, .average_turnaround_time = 0, .total_run_time = 0};
 	EXPECT_EQ(false,priority(NULL, &result));
+
+	EXPECT_EQ(result.total_run_time, 0UL);
+	EXPECT_NEAR(result.average_waiting_time, 0.00, 0.01);
+	EXPECT_NEAR(result.average_turnaround_time, 0.00, 0.01);
 }
 
 
@@ -381,6 +814,30 @@ TEST (priority, ResultNULL)
 	dyn_array_destroy(ready_queue);
 }
 
+// priority = 0, ready_queue contains "bad" data, priority is a positive integer
+TEST (priority, ZeroPriority)
+{
+	ProcessControlBlock_t newPCB1 = {.remaining_burst_time = 5, .priority = 1, .arrival = 0, .started = false};
+	ProcessControlBlock_t newPCB2 = {.remaining_burst_time = 3, .priority = 0, .arrival = 1, .started = false};
+	ProcessControlBlock_t newPCB3 = {.remaining_burst_time = 4, .priority = 2, .arrival = 2, .started = false};
+	
+	dyn_array_t* ready_queue = dyn_array_create(3, sizeof(ProcessControlBlock_t), NULL);
+	
+	dyn_array_push_back(ready_queue, &newPCB1);
+	dyn_array_push_back(ready_queue, &newPCB2);
+	dyn_array_push_back(ready_queue, &newPCB3);
+	
+	ScheduleResult_t result = {.average_waiting_time = 0, .average_turnaround_time = 0, .total_run_time = 0};
+	
+	EXPECT_EQ(false,priority(ready_queue, &result));
+
+	EXPECT_EQ(result.total_run_time, 0UL);
+	EXPECT_NEAR(result.average_waiting_time, 0.00, 0.01);
+	EXPECT_NEAR(result.average_turnaround_time, 0.00, 0.01);
+	
+	dyn_array_destroy(ready_queue);
+}
+
 /*
 *  Test related to empty queue
 **/
@@ -395,6 +852,10 @@ TEST (priority, ZeroSizeArray)
 	ScheduleResult_t result = {.average_waiting_time = 0, .average_turnaround_time = 0, .total_run_time = 0};
 	
 	EXPECT_EQ(false,priority(ready_queue, &result));
+
+	EXPECT_EQ(result.total_run_time, 0UL);
+	EXPECT_NEAR(result.average_waiting_time, 0.00, 0.01);
+	EXPECT_NEAR(result.average_turnaround_time, 0.00, 0.01);
 	
 	dyn_array_destroy(ready_queue);
 }
@@ -750,165 +1211,6 @@ TEST (load_process_control_blocks, tooManyIntegers)
 	EXPECT_EQ(NULL, load_process_control_blocks("test.bin"));
 	remove("test.bin");
 }
-
-//EOF, fread() fails, NEEDS WORK, not understanding this
-TEST (load_process_control_blocks, EOFFailure) 
-{
-	FILE *fptr = fopen("test.bin", "wb");
-	
-	uint32_t N = 2; // 2 pcbs
-	fwrite(&N, sizeof(uint32_t), 1, fptr);
-
-	uint32_t P1remaining_burst_time = 2;
-	fwrite(&P1remaining_burst_time, sizeof(uint32_t), 1, fptr);
-	uint32_t P1priority = 5;
-	fwrite(&P1priority, sizeof(uint32_t), 1, fptr);
-	// leaving out arrival of the first process so we get an fread error not close to the end of the file
-
-	fclose(fptr);
-
-	EXPECT_EQ(NULL, load_process_control_blocks("test.bin"));
-	remove("test.bin");
-}
-
-/*
-*  Tests related to file containing bad data, negative # of pcbs, negative burst time, negative arrival time, non-positive priority
-**/
-
-/*
-// negative number of pcbs
-TEST (load_process_control_blocks, negativeN) 
-{
-	FILE *fptr = fopen("test.bin", "wb");
-	
-	uint32_t N = -1;
-	fwrite(&N, sizeof(uint32_t), 1, fptr);
-
-	fclose(fptr);
-
-	EXPECT_EQ(NULL,load_process_control_blocks("test.bin"));
-	remove("test.bin");
-}
-
-// negative burst time
-TEST (load_process_control_blocks, negativeBurstTime) 
-{
-	FILE *fptr = fopen("test.bin", "wb");
-	
-	uint32_t N = 1;
-	fwrite(&N, sizeof(uint32_t), 1, fptr);
-
-	uint32_t P1remaining_burst_time = -2;
-	fwrite(&P1remaining_burst_time, sizeof(uint32_t), 1, fptr);
-	uint32_t P1priority = 5;
-	fwrite(&P1priority, sizeof(uint32_t), 1, fptr);
-	uint32_t P1arrival = 3;
-	fwrite(&P1arrival, sizeof(uint32_t), 1, fptr);
-
-	fclose(fptr);
-
-	EXPECT_EQ(NULL,load_process_control_blocks("test.bin"));
-	remove("test.bin");
-}
-
-// negative arrival time
-TEST (load_process_control_blocks, negativeArrivalTime) 
-{
-	FILE *fptr = fopen("test.bin", "wb");
-	
-	uint32_t N = 1;
-	fwrite(&N, sizeof(uint32_t), 1, fptr);
-
-	uint32_t P1remaining_burst_time = 2;
-	fwrite(&P1remaining_burst_time, sizeof(uint32_t), 1, fptr);
-	uint32_t P1priority = 5;
-	fwrite(&P1priority, sizeof(uint32_t), 1, fptr);
-	uint32_t P1arrival = -3;
-	fwrite(&P1arrival, sizeof(uint32_t), 1, fptr);
-
-	fclose(fptr);
-
-	EXPECT_EQ(NULL,load_process_control_blocks("test.bin"));
-	remove("test.bin");
-}
-*/
-
-// priority = 0
-TEST (load_process_control_blocks, zeroPriority) 
-{
-	FILE *fptr = fopen("test.bin", "wb");
-	
-	uint32_t N = 1;
-	fwrite(&N, sizeof(uint32_t), 1, fptr);
-
-	uint32_t P1remaining_burst_time = 2;
-	fwrite(&P1remaining_burst_time, sizeof(uint32_t), 1, fptr);
-	uint32_t P1priority = 0;
-	fwrite(&P1priority, sizeof(uint32_t), 1, fptr);
-	uint32_t P1arrival = 3;
-	fwrite(&P1arrival, sizeof(uint32_t), 1, fptr);
-
-	fclose(fptr);
-
-	EXPECT_EQ(NULL,load_process_control_blocks("test.bin"));
-	remove("test.bin");
-}
-
-// priority = 1, smallest number for priority is accepted, this test and the last ensure non-negative values are accepted for priority
-TEST (load_process_control_blocks, priorityOne) 
-{
-	FILE *fptr = fopen("test.bin", "wb");
-	
-	uint32_t N = 1;
-	fwrite(&N, sizeof(uint32_t), 1, fptr);
-
-	uint32_t P1remaining_burst_time = 2;
-	fwrite(&P1remaining_burst_time, sizeof(uint32_t), 1, fptr);
-	uint32_t P1priority = 1;
-	fwrite(&P1priority, sizeof(uint32_t), 1, fptr);
-	uint32_t P1arrival = 3;
-	fwrite(&P1arrival, sizeof(uint32_t), 1, fptr);
-
-	fclose(fptr);
-
-	dyn_array_t * array = load_process_control_blocks("test.bin");
-
-	ASSERT_NE(array, nullptr); // array is not null
-	EXPECT_EQ(dyn_array_size(array), static_cast<size_t>(1)); // array has 1 process
-
-	ProcessControlBlock_t* pcb = (ProcessControlBlock_t *)dyn_array_at(array,0);
-
-	EXPECT_EQ(P1remaining_burst_time, pcb->remaining_burst_time);
-	EXPECT_EQ(P1priority, pcb->priority);
-	EXPECT_EQ(P1arrival, pcb->arrival);
-	EXPECT_FALSE(pcb->started);
-
-	dyn_array_destroy(array);
-	remove("test.bin");
-}
-
-/*
-// negative priority
-TEST (load_process_control_blocks, negativePriority) 
-{
-	FILE *fptr = fopen("test.bin", "wb");
-	
-	uint32_t N = 1;
-	fwrite(&N, sizeof(uint32_t), 1, fptr);
-
-	uint32_t P1remaining_burst_time = 2;
-	fwrite(&P1remaining_burst_time, sizeof(uint32_t), 1, fptr);
-	uint32_t P1priority = -1;
-	fwrite(&P1priority, sizeof(uint32_t), 1, fptr);
-	uint32_t P1arrival = 3;
-	fwrite(&P1arrival, sizeof(uint32_t), 1, fptr);
-
-	fclose(fptr);
-
-	EXPECT_EQ(NULL,load_process_control_blocks("test.bin"));
-	remove("test.bin");
-}
-*/
 
 
 /*
