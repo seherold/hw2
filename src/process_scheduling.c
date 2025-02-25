@@ -354,98 +354,138 @@ bool priority(dyn_array_t *ready_queue, ScheduleResult_t *result)
 // \return true if function ran successful else false for an error
 bool round_robin(dyn_array_t *ready_queue, ScheduleResult_t *result, size_t quantum) 
 {
-	UNUSED(ready_queue);
-	UNUSED(result);
-	UNUSED(quantum);
-	return false;
 	
-	/*
 	if (ready_queue == NULL || result == NULL || quantum == 0 || dyn_array_size(ready_queue) == 0) // check for null parameters, bad paramater or no processes to be scheduled
 	{
 		return false;
 	}
 	
-	uint32_t currentTime = UINT32_MAX;
+	uint32_t currentTime = UINT32_MAX; //Set starting varibles
 	uint32_t totalTurnAroundTime = 0;
 	uint32_t totalWaitingTime = 0;
-	size_t numPCB = dyn_array_size(ready_queue);
+	
+	size_t numPCB = dyn_array_size(ready_queue); //Counts number of processes
 	
 	
-	for(int i = 0; i < numPCB; i++){
+	for(size_t i = 0; i < numPCB; i++){ //Creates a foor loop to check for null processes and set current time
 	
-	    if(dyn_array_at(ready_queue,i) == NULL){
+	    if(dyn_array_at(ready_queue,i) == NULL){ 
 	    
 	        return false;
 	    }
 	    else{
-	    
-	        ProcessControlBlock_t* pcb = (ProcessControlBlock_t *)dyn_array_at(ready_queue,i);
-	        currentTime = currentTime < pcb->arrival ? pcb->arrival : currentTime;
+	        ProcessControlBlock_t* pcb = (ProcessControlBlock_t *)dyn_array_at(ready_queue,i); //Checks the processes and if its arrival time is less than the current time, set the current time to the fastest arrival times
+	        if (pcb->priority <= 0) // checks for bad priority
+			{
+				return false;
+			}
+			currentTime = currentTime > pcb->arrival ? pcb->arrival : currentTime;
 	    }
 	
 	}
 	
-	size_t itter = 0;
+	size_t itter = 0; //Creates a itteration variable to use in the loop
 	
-	while(dyn_array_size(ready_queue) != 0){
+	while(dyn_array_size(ready_queue) != 0){ //Keeps the loop going why the size is greater than zero
 	
-	    size_t Check = dyn_array_size(ready_queue);
+	    size_t Check = dyn_array_size(ready_queue); //Gets the size of the array
 	   
 	    
 	    
-	    ProcessControlBlock_t* pcb = (ProcessControlBlock_t *)dyn_array_at(ready_queue,0);
-	    if(pcb->arrival > currentTime){
+	    ProcessControlBlock_t* pcb = (ProcessControlBlock_t *)dyn_array_at(ready_queue,0); //Gets the first element
 	    
-	        if(itter < Check){
-	            if(dyn_array_push_back(ready_queue, (void *)pcb)){
-	                dyn_array_pop_front(ready_queue);
-	                itter++;
+	    if(pcb->arrival > currentTime){ //Check if its arrived so far
+	    
+	        if(itter < Check){ //If the itterator is less than check
+	        
+	        
+	            if(dyn_array_push_back(ready_queue, (void *)pcb)){ //tries to push the process in the back of the queue
+	            
+	            
+	                dyn_array_pop_front(ready_queue); //Pops the front if successful
+	                itter++; //Increment itteration
+	                
 	            }
-	            else{
+	            
+	            
+	            else{ //if returning it to the queue fails, return false
 	        
 	                return false;
 	            }
 	        }
-	        else{
-	            for(int i = 0; i < Check; i++){
-	                ProcessControlBlock_t* pcb = (ProcessControlBlock_t *)dyn_array_at(ready_queue,i);
-	                currentTime = currentTime < pcb->arrival ? pcb->arrival : currentTime;
+	        else{//If the itterator is equal to check, meaning all processes have been checked
+	        
+	            currentTime = pcb->arrival; //Sets the current time to the current processes arrival
+	            
+	            for(size_t i = 0; i < Check; i++){ //Create a foor loop to cycle through all processes
+	            
+	                pcb = (ProcessControlBlock_t *)dyn_array_at(ready_queue,i);
+	                
+	                currentTime = currentTime > pcb->arrival ? pcb->arrival : currentTime; //Check all the processes for the earliest arrival time
 	            }
-	            itter = 0;
+	            itter = 0; //Reset the itterater
 	        }
+	    }
+	    
+	    
+	    else{//If the process has arrived
+	    
+	    itter = 0; //Reset the itterator
+	    
+	    
+	    uint32_t waitTime = 0; //Create a local wait time
+	    
+	    
+	    if(!(pcb->started)) {  //If the process has not started  
+	    
+	         waitTime = currentTime - pcb->arrival; //Wait time is the current minus arrival
+	        
 	    }
 	    else{
 	    
-	     uint32_t waitTime = 0;
-	    if(!(pcb->started)) {    
-	    
-	         waitTime = currentTime - pcb->arrival;
-	        
+	        waitTime = currentTime - (pcb->arrival + (pcb->times_processed * quantum)); //Other wise wait time is current minus arrival minus the number of times processes times the quantum (C - (A + (Q*T)))
 	    }
-	    else{
-	    
-	        waitTime = currentTime - (pcb->arrival + (quantum)); //This is wrong, need to adjust using something in pcb (Discuss with Group later)
-	    }
-	    
-	    totalWaitingTime += waitTime;
 	        
+	        if(pcb->remaining_burst_time > quantum){ //If burst time is greater than the quantum
 	        
-	        if(pcb->remaining_burst_time > quantum){
-	            for(int i < 0; i < quantum; i++){
-	                pcb-> started = true;
-	                virtual_cpu(pcb);
-		            currentTime++;
-		            
+	        pcb-> started = true; //Set the started to true
+	        
+	        pcb->times_processed++; //Increment the processes times processed
+	        
+	            for(size_t j = 0; j < quantum; j++){ //Create a for loop for times to run the CPU
+	                
+	                virtual_cpu(pcb); //Run the CPU
+	                
+		            currentTime++;//Increment the times
+		            result->total_run_time++;
 	            }
+	            if(dyn_array_push_back(ready_queue, (void *)pcb)){ //Try to push the process back on the stack
+	            
+	                dyn_array_pop_front(ready_queue); //If suceessful remove the first emelement
+	            }
+	            else{
+	            
+	                return false; //If theres an error adding it back, return false;
+	            }
+	            
 	        }
-	        else{
+	        
+	        
+	        else{ //If the burst time is less than the quantum
+	        
 	            while(pcb->remaining_burst_time > 0) // this moves the process through units of time until it is completed
 			    {
-				    virtual_cpu(pcb);
-				    currentTime++;
+				    virtual_cpu(pcb); //Run the cpu
+				    
+				    currentTime++;//Increment the times
+				    result->total_run_time++;
 			    }
-			    totalTurnAroundTime += currentTime - pcb->arrival;
-	            dyn_array_pop_front(ready_queue);
+			    
+			    totalTurnAroundTime += currentTime - pcb->arrival; //Add the turnaround time to the result varible
+			   
+			    totalWaitingTime += waitTime; //Add the wait time to the result varible
+			    
+	            dyn_array_pop_front(ready_queue); //Remove the first element
 	            
 	        }
 	    }
@@ -455,9 +495,10 @@ bool round_robin(dyn_array_t *ready_queue, ScheduleResult_t *result, size_t quan
 	
 	result->average_waiting_time = totalWaitingTime/numPCB;
 	result->average_turnaround_time = totalTurnAroundTime/numPCB;
-	result->total_run_time = currentTime;
 	
-	*/
+	return true;
+	
+	
 }
 
 
