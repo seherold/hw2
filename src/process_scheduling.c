@@ -59,11 +59,6 @@ bool first_come_first_serve(dyn_array_t *ready_queue, ScheduleResult_t *result)
 			return false; // if dyn_array_extract_front fails, the algorithm fails
 		} // now we have the process we want to run
 
-		if (processToRun.priority == 0) // priority = 0 is not a valid priority, we have bad data
-		{
-			return false; // Cannot complete FCFS algorithm if, bad data, scheduling algorithm fails
-		}
-
 		if (currentTime <= processToRun.arrival) // ensures that the process has arrived
 		{
 			currentTime = processToRun.arrival; // we don't necessarily care what the first arrival time is, we've already sorted by arrival so the one with the shortest arrival time should be first
@@ -161,12 +156,6 @@ bool shortest_job_first(dyn_array_t *ready_queue, ScheduleResult_t *result)
 			ProcessControlBlock_t processToRun; // temporary variable to hold pcb we want to run
 
 			if (dyn_array_extract_front(arrived_queue, &processToRun) == false) // the front of the arrival queue should now be the process with the shortest burst time that has arrived, if extracting this fails
-			{
-				dyn_array_destroy(arrived_queue); // clean up allocations
-				return false; // scheduling algorithm fails
-			}
-
-			if (processToRun.priority == 0) // priority = 0 is not a valid priority, we have bad data, scheduling algorithm fails
 			{
 				dyn_array_destroy(arrived_queue); // clean up allocations
 				return false; // scheduling algorithm fails
@@ -285,12 +274,6 @@ bool priority(dyn_array_t *ready_queue, ScheduleResult_t *result)
 			ProcessControlBlock_t processToRun; // temporary variable to hold pcb we want to run
 
 			if (dyn_array_extract_front(arrived_queue, &processToRun) == false) // the front of the arrival queue should now be the process with the shortest burst time that has arrived, if extracting this fails
-			{
-				dyn_array_destroy(arrived_queue); // clean up allocations
-				return false; // scheduling algorithm fails
-			}
-
-			if (processToRun.priority == 0) // priority = 0 is not a valid priority, we have bad data, scheduling algorithm fails
 			{
 				dyn_array_destroy(arrived_queue); // clean up allocations
 				return false; // scheduling algorithm fails
@@ -518,11 +501,6 @@ dyn_array_t *load_process_control_blocks(const char *input_file)
 
 	if (fread(&numPCBs, sizeof(uint32_t), 1, fptr) == 1)
 	{
-		/*if (numPCBs < 0) // always false, waiting on response from Bipin about "bad" data
-		{
-			fclose(fptr);
-			return NULL;	
-		}*/
 
 		dyn_array_t* pcbArray = dyn_array_create(numPCBs, sizeof(ProcessControlBlock_t), NULL);
 
@@ -540,20 +518,6 @@ dyn_array_t *load_process_control_blocks(const char *input_file)
 			fread(&pcb.priority, sizeof(uint32_t), 1, fptr) == 1 &&
 			fread(&pcb.arrival, sizeof(uint32_t), 1, fptr) == 1)
 			{
-				/*if (pcb.remaining_burst_time < 0 || pcb.priority <= 0 || pcb.arrival < 0) // always false, waiting on response from Bipin about "bad" data
-				{
-					dyn_array_destroy(pcbArray);
-					fclose(fptr);
-					return NULL;	
-				}*/
-
-				if (pcb.priority == 0)
-				{
-					dyn_array_destroy(pcbArray);
-					fclose(fptr);
-					return NULL;
-				}
-
 				if(dyn_array_push_back(pcbArray,&pcb) == false)
 				{
 					dyn_array_destroy(pcbArray);
