@@ -19,7 +19,7 @@ void virtual_cpu(ProcessControlBlock_t *process_control_block)
 }
 
 
-int compareByArrival(const void *a, const void *b) 
+int compareByArrival(const void *a, const void *b) // creates a custom comparator function to compare based on arrival time
 {
 	ProcessControlBlock_t * PCB1 = (ProcessControlBlock_t *)a;
 	ProcessControlBlock_t * PCB2 = (ProcessControlBlock_t *)b;
@@ -42,44 +42,44 @@ bool first_come_first_serve(dyn_array_t *ready_queue, ScheduleResult_t *result)
 	uint32_t totalTurnAroundTime = 0;
 	uint32_t totalWaitingTime = 0;
 
-	size_t numPCBs = dyn_array_size(ready_queue);
+	size_t numPCBs = dyn_array_size(ready_queue); // gets the number of processes
 
-	if (dyn_array_sort(ready_queue, compareByArrival) == false)
+	if (dyn_array_sort(ready_queue, compareByArrival) == false) // sort by arrival
 	{
-		return false;
+		return false; // if dyn_array_sort fails, the algorithm fails
 	}
 
 	while (dyn_array_size(ready_queue) > 0) // for all of the processes in the queue
 	{
 
-		ProcessControlBlock_t processToRun;
+		ProcessControlBlock_t processToRun; // make a local pcb variable to store the process we want to run
 
 		if (dyn_array_extract_front(ready_queue, &processToRun) == false) // grabs the pcb and removes it from the ready_queue
 		{
-			return false;
+			return false; // if dyn_array_extract_front fails, the algorithm fails
 		} // now we have the process we want to run
 
-		if (processToRun.priority == 0) // priority = 0 is not a valid priority, we have bad data, scheduling algorithm fails
+		if (processToRun.priority == 0) // priority = 0 is not a valid priority, we have bad data
 		{
-			return false;
+			return false; // Cannot complete FCFS algorithm if, bad data, scheduling algorithm fails
 		}
 
 		if (currentTime <= processToRun.arrival) // ensures that the process has arrived
 		{
-			currentTime = processToRun.arrival; // we don't necessarily care here what the first arrival time is, we've already sorted by arrival so the one with the shortest arrival time should be first
+			currentTime = processToRun.arrival; // we don't necessarily care what the first arrival time is, we've already sorted by arrival so the one with the shortest arrival time should be first
 		}
 
-		uint32_t waitTime = currentTime - processToRun.arrival;
+		uint32_t waitTime = currentTime - processToRun.arrival; // time between arrival of the process and the first time the process is scheduled to run on the CPU which is the current time right before we run the process
     	totalWaitingTime += waitTime;
 
 		while(processToRun.remaining_burst_time > 0) // this moves the process through units of time until it is completed
 		{
-			virtual_cpu(&processToRun);
-			currentTime++;
-			totalRunTime++;
+			virtual_cpu(&processToRun); // decrement remaining_burst_time
+			currentTime++; // keep current time tracker up to date
+			totalRunTime++; // sums up all the burst times
 		}
 
-		uint32_t turnAroundTime = currentTime - processToRun.arrival;
+		uint32_t turnAroundTime = currentTime - processToRun.arrival; // the time a process takes to complete (from arrival to completion), the current time after a process completes is it's completion time
 		totalTurnAroundTime += turnAroundTime;
 	}
 
@@ -90,7 +90,8 @@ bool first_come_first_serve(dyn_array_t *ready_queue, ScheduleResult_t *result)
 	return true;
 }
 
-int compareByBurstTime(const void *a, const void *b) 
+
+int compareByBurstTime(const void *a, const void *b) // creates a custom comparator function to compare based on burst time
 {
 	ProcessControlBlock_t * PCB1 = (ProcessControlBlock_t *)a;
 	ProcessControlBlock_t * PCB2 = (ProcessControlBlock_t *)b;
@@ -115,10 +116,10 @@ bool shortest_job_first(dyn_array_t *ready_queue, ScheduleResult_t *result)
 
 	size_t numPCBs = dyn_array_size(ready_queue);
 
-	if (dyn_array_sort(ready_queue, compareByArrival) == false)
+	/*if (dyn_array_sort(ready_queue, compareByArrival) == false)
 	{
 		return false;
-	}
+	}*/
 
 	dyn_array_t* arrived_queue = dyn_array_create(dyn_array_size(ready_queue), sizeof(ProcessControlBlock_t), NULL);
 	if (arrived_queue == NULL)
@@ -215,8 +216,7 @@ bool shortest_job_first(dyn_array_t *ready_queue, ScheduleResult_t *result)
 	return true;
 }
 
-
-int compareByPriority(const void *a, const void *b) 
+int compareByPriority(const void *a, const void *b) // creates a custom comparator function to compare based on priority
 {
 	ProcessControlBlock_t * PCB1 = (ProcessControlBlock_t *)a;
 	ProcessControlBlock_t * PCB2 = (ProcessControlBlock_t *)b;
@@ -229,11 +229,6 @@ int compareByPriority(const void *a, const void *b)
 // \return true if function ran successful else false for an error
 bool priority(dyn_array_t *ready_queue, ScheduleResult_t *result) 
 {
-	//do we need to actively prevent starvation?
-	//UNUSED(ready_queue);
-	//UNUSED(result);
-	//return false;
-	
 	if (ready_queue == NULL || result == NULL || dyn_array_size(ready_queue) == 0) // check for invalid parameters or no processes to be scheduled
 	{
 		return false;
