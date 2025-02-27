@@ -735,8 +735,7 @@ bool shortest_remaining_time_first(dyn_array_t *ready_queue, ScheduleResult_t *r
     {
         return false;
     }
-    //Change this 
-    //ProcessControlBlock_t *pcb = (ProcessControlBlock_t *)dyn_array_export(ready_queue); //DEBUG
+
     if (dyn_array_sort(ready_queue, compareByArrival) == false)
 	{
 		return false;
@@ -748,90 +747,87 @@ bool shortest_remaining_time_first(dyn_array_t *ready_queue, ScheduleResult_t *r
 		return false;
 	}
 	
-	
+	//Intialize variables to return to result
     uint32_t current_time = 0;
     uint32_t total_waiting_time = 0;
     uint32_t total_turnaround_time = 0;
     
-    
+    //Get size of the array and create arrays to keep track of times
     size_t length = dyn_array_size(ready_queue);
-    uint32_t remaining_time[length];
-    bool started[length];
-    memset(started, 0, sizeof(started));
+    
+	uint32_t original_burst_time[length];
+    
     size_t num_completed = 0;
-    uint32_t waiting_time[length];  
-	memset(waiting_time, 0, sizeof(waiting_time));
-    //get the total time needed to run all processes
+    uint32_t waiting_time[length];
+    //get the total time needed to run all processes and the remaining burst time for each process
     for (size_t i = 0; i < length; i++) 
     {
         if(pcb[i].priority <= 0)
         {
             return false;
         }
-        remaining_time[i] = pcb[i].remaining_burst_time;
+		original_burst_time[i] = pcb[i].remaining_burst_time;
         result->total_run_time += pcb[i].remaining_burst_time;
     }
     
     
     
-    
+    //Loop until all processes are completed 
     while(num_completed < length)
     {
+		//Reset variables 
         uint32_t  min_remaining_time = UINT32_MAX;
         uint32_t shortest_loc = 0;
         bool shortest_found = false;
+		//Check to see what processes have arrived and aren't finished then which has the least remaining time left
         for(size_t i = 0; i < length; i++)
         {
-            if (pcb[i].arrival <= current_time && remaining_time[i] > 0)
+            if (pcb[i].arrival <= current_time && pcb[i].remaining_burst_time > 0)
             {
-                if(remaining_time[i] < min_remaining_time)
+                if(pcb[i].remaining_burst_time < min_remaining_time)
                 {
-                    min_remaining_time = remaining_time[i];
+                    min_remaining_time = pcb[i].remaining_burst_time;
                     shortest_loc = i;
                     shortest_found = true;
-					continue;
+					
                 }
                 
             }
         }
         
-        
+        //if nothing has arrived advance time
         if (!shortest_found)
         {
             current_time++;
             continue;
         }
-        
-        if(!started[shortest_loc])
+        //Start the process if it hasn't started
+        if(!pcb[shortest_loc].started)
         {
-            started[shortest_loc] = true;
-            
-            pcb->started = true;
+            pcb[shortest_loc].started = true;
         }
+		//Advance the waiting time for all processes that have arrived and not finished that don't have the shortest time
 		for (size_t i = 0; i < length; i++)
         {
-            if (pcb[i].arrival <= current_time && remaining_time[i] > 0 && i != shortest_loc)
+            if (pcb[i].arrival <= current_time && pcb[i].remaining_burst_time > 0 && i != shortest_loc)
             {
                 waiting_time[i]++;
             }
         }
-        remaining_time[shortest_loc]--;
+		
+        pcb[shortest_loc].remaining_burst_time--;
         current_time++;
-        if (remaining_time[shortest_loc] == 0) 
+		//If the processes is finished update the number of completed processes and calculate TAT and WT
+        if (pcb[shortest_loc].remaining_burst_time == 0) 
         {
-			
             num_completed++;
 			int turnAroundTime = current_time - pcb[shortest_loc].arrival;
             total_turnaround_time += current_time - pcb[shortest_loc].arrival;
-			total_waiting_time += turnAroundTime - pcb[shortest_loc].remaining_burst_time;
+			total_waiting_time += turnAroundTime - original_burst_time[shortest_loc];
         }
-    }//dont count idle time 
-    
-	
+    }
+    //Calculate averages and return true
     result->average_waiting_time = (float)total_waiting_time / length;
     result->average_turnaround_time = (float)total_turnaround_time / length;
-    
-
-
 	return true;
 }
