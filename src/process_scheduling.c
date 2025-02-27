@@ -435,10 +435,10 @@ bool round_robin(dyn_array_t *ready_queue, ScheduleResult_t *result, size_t quan
 	        waitTime = currentTime - (pcb->arrival + (*inter * quantum)); //Other wise wait time is current minus arrival minus the number of times processes times the quantum (C - (A + (Q*T)))
 	    }
 
-		printf("\nCurrent time: %d\n", currentTime);
-		printf("\nWait time: %d\n", waitTime);
-		printf("\nRemaining burst time: %d\n", pcb->remaining_burst_time);
-		printf("\nitter: %d\n", *inter);
+		//printf("\nCurrent time: %d\n", currentTime);
+		//printf("\nWait time: %d\n", waitTime);
+		//printf("\nRemaining burst time: %d\n", pcb->remaining_burst_time);
+		//printf("\nitter: %d\n", *inter);
 
 	        
 	        (*inter)++;
@@ -575,10 +575,10 @@ bool round_robin(dyn_array_t *ready_queue, ScheduleResult_t *result, size_t quan
 			    totalTurnAroundTime += currentTime - pcb->arrival; //Add the turnaround time to the result varible
 			   
 			    totalWaitingTime += waitTime; //Add the wait time to the result varible
-				printf("\nCompletion Time: %d\n", currentTime);
-			    printf("\nTotal Waiting Time: %d\n", totalWaitingTime);
-				printf("\nTotal Run Time: %ld\n",  result->total_run_time);
-				printf("\nTotal TAT: %d\n", totalTurnAroundTime);
+				//printf("\nCompletion Time: %d\n", currentTime);
+			    //printf("\nTotal Waiting Time: %d\n", totalWaitingTime);
+				//printf("\nTotal Run Time: %ld\n",  result->total_run_time);
+				//printf("\nTotal TAT: %d\n", totalTurnAroundTime);
 	            
 	        }
 	    
