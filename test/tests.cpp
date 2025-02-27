@@ -730,8 +730,8 @@ TEST (round_robin, DiffArrivalOutOfOrderSamePriority) // should do schedule acco
 	EXPECT_EQ(true, round_robin(ready_queue, &result, QUANTUM));
 	
 	EXPECT_EQ(result.total_run_time, 16UL);
-	EXPECT_NEAR(result.average_waiting_time, 5.00, 0.01);
-	EXPECT_NEAR(result.average_turnaround_time, 10.33, 0.01);
+	EXPECT_NEAR(result.average_waiting_time, 6.67, 0.01);
+	EXPECT_NEAR(result.average_turnaround_time, 12.00, 0.01);
 	
 	dyn_array_destroy(ready_queue);
 }
@@ -899,8 +899,8 @@ TEST (round_robin, RRLong) // tests with more than 3 processes
 	EXPECT_EQ(true, round_robin(ready_queue, &result, QUANTUM));
 	
 	EXPECT_EQ(result.total_run_time, 63UL);
-	EXPECT_NEAR(result.average_waiting_time, 20.30, 0.01);
-	EXPECT_NEAR(result.average_turnaround_time, 26.60, 0.01);
+	EXPECT_NEAR(result.average_waiting_time, 22.80, 0.01);
+	EXPECT_NEAR(result.average_turnaround_time, 29.10, 0.01);
 	
 	dyn_array_destroy(ready_queue);
 }

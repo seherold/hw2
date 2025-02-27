@@ -434,8 +434,14 @@ bool round_robin(dyn_array_t *ready_queue, ScheduleResult_t *result, size_t quan
 	    
 	        waitTime = currentTime - (pcb->arrival + (*inter * quantum)); //Other wise wait time is current minus arrival minus the number of times processes times the quantum (C - (A + (Q*T)))
 	    }
+
+		//printf("\nCurrent time: %d\n", currentTime);
+		//printf("\nWait time: %d\n", waitTime);
+		//printf("\nRemaining burst time: %d\n", pcb->remaining_burst_time);
+		//printf("\nitter: %d\n", *inter);
+
 	        
-	        
+	        (*inter)++;
 	        if(pcb->remaining_burst_time > quantum){ //If burst time is greater than the quantum
 	        
 	            pcb-> started = true; //Set the started to true
@@ -446,14 +452,14 @@ bool round_robin(dyn_array_t *ready_queue, ScheduleResult_t *result, size_t quan
 	                virtual_cpu(pcb); //Run the CPU
 	                
 		            currentTime++;//Increment the times
-		            result->total_run_time++;
+		            (result->total_run_time)++;
 		            
 		            
 		            for(size_t p = 0; p < RCheck; p++){ //Goes through ready queue to add new arrivals
 		            
 		                ProcessControlBlock_t* pcb3 = (ProcessControlBlock_t*)malloc(sizeof(ProcessControlBlock_t));
-	                    dyn_array_extract_front(work_queue, pcb3); //Gets the first element of ready queue
-	                    if(pcb3->arrival <= currentTime){
+	                    dyn_array_extract_front(ready_queue, pcb3); //Gets the first element of ready queue
+	                    if(pcb3->arrival == currentTime){
 	                    
 	                        if(dyn_array_push_back(work_queue, (void *)pcb3)){ //tries to push the process in the back of the queue
 	         
@@ -525,8 +531,8 @@ bool round_robin(dyn_array_t *ready_queue, ScheduleResult_t *result, size_t quan
 				    for(size_t p = 0; p < RCheck; p++){ //Goes through ready queue to add new arrivals
 		            
 		                ProcessControlBlock_t* pcb3 = (ProcessControlBlock_t*)malloc(sizeof(ProcessControlBlock_t)); 
-	                    dyn_array_extract_front(work_queue, pcb3); //Gets the first element of ready queue
-	                    if(pcb3->arrival <= currentTime){
+	                    dyn_array_extract_front(ready_queue, pcb3); //Gets the first element of ready queue
+	                    if(pcb3->arrival == currentTime){
 	                    
 	                        if(dyn_array_push_back(work_queue, (void *)pcb3)){ //tries to push the process in the back of the queue
 	         
@@ -569,7 +575,10 @@ bool round_robin(dyn_array_t *ready_queue, ScheduleResult_t *result, size_t quan
 			    totalTurnAroundTime += currentTime - pcb->arrival; //Add the turnaround time to the result varible
 			   
 			    totalWaitingTime += waitTime; //Add the wait time to the result varible
-			    
+				//printf("\nCompletion Time: %d\n", currentTime);
+			    //printf("\nTotal Waiting Time: %d\n", totalWaitingTime);
+				//printf("\nTotal Run Time: %ld\n",  result->total_run_time);
+				//printf("\nTotal TAT: %d\n", totalTurnAroundTime);
 	            
 	        }
 	    
@@ -630,8 +639,8 @@ bool round_robin(dyn_array_t *ready_queue, ScheduleResult_t *result, size_t quan
 	
 	//Figure out the results
 	
-	result->average_waiting_time = totalWaitingTime/numPCB;
-	result->average_turnaround_time = totalTurnAroundTime/numPCB;
+	result->average_waiting_time = (float)totalWaitingTime/numPCB;
+	result->average_turnaround_time = (float)totalTurnAroundTime/numPCB;
 	
 	return true;
 	
