@@ -759,7 +759,8 @@ bool shortest_remaining_time_first(dyn_array_t *ready_queue, ScheduleResult_t *r
     bool started[length];
     memset(started, 0, sizeof(started));
     size_t num_completed = 0;
-    
+    uint32_t waiting_time[length];  
+	memset(waiting_time, 0, sizeof(waiting_time));
     //get the total time needed to run all processes
     for (size_t i = 0; i < length; i++) 
     {
@@ -788,6 +789,7 @@ bool shortest_remaining_time_first(dyn_array_t *ready_queue, ScheduleResult_t *r
                     min_remaining_time = remaining_time[i];
                     shortest_loc = i;
                     shortest_found = true;
+					continue;
                 }
                 
             }
@@ -803,18 +805,29 @@ bool shortest_remaining_time_first(dyn_array_t *ready_queue, ScheduleResult_t *r
         if(!started[shortest_loc])
         {
             started[shortest_loc] = true;
-            total_waiting_time += current_time - pcb[shortest_loc].arrival;
+            
             pcb->started = true;
+        }
+		for (size_t i = 0; i < length; i++)
+        {
+            if (pcb[i].arrival <= current_time && remaining_time[i] > 0 && i != shortest_loc)
+            {
+                waiting_time[i]++;
+            }
         }
         remaining_time[shortest_loc]--;
         current_time++;
         if (remaining_time[shortest_loc] == 0) 
         {
+			
             num_completed++;
+			int turnAroundTime = current_time - pcb[shortest_loc].arrival;
             total_turnaround_time += current_time - pcb[shortest_loc].arrival;
+			total_waiting_time += turnAroundTime - pcb[shortest_loc].remaining_burst_time;
         }
     }//dont count idle time 
     
+	
     result->average_waiting_time = (float)total_waiting_time / length;
     result->average_turnaround_time = (float)total_turnaround_time / length;
     
