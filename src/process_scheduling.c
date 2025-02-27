@@ -484,72 +484,73 @@ bool round_robin(dyn_array_t *ready_queue, ScheduleResult_t *result, size_t quan
 // \return a populated dyn_array of ProcessControlBlocks if function ran successful else NULL for an error
 dyn_array_t *load_process_control_blocks(const char *input_file) 
 {
-	if (input_file == NULL)
+	if (input_file == NULL) // check for invalid parameters
 	{
 		return NULL;
 	}
 
-	FILE* fptr = fopen(input_file, "rb");
+	FILE* fptr = fopen(input_file, "rb"); // opening file given to function
 
-	if (fptr == NULL)
+	if (fptr == NULL) // if opening the file fails
 
 	{
-		return NULL;
+		return NULL; // load_process_control_blocks fails and returns NULL
 	}
 
 	uint32_t numPCBs;
 
-	if (fread(&numPCBs, sizeof(uint32_t), 1, fptr) == 1)
+	if (fread(&numPCBs, sizeof(uint32_t), 1, fptr) == 1) // if the read of the first uint32 was successful we have the number of processes
 	{
 
-		dyn_array_t* pcbArray = dyn_array_create(numPCBs, sizeof(ProcessControlBlock_t), NULL);
+		dyn_array_t* pcbArray = dyn_array_create(numPCBs, sizeof(ProcessControlBlock_t), NULL); // creating the dyn_array we are about to fill with processes created from the file
 
-		if (pcbArray == NULL)
+		if (pcbArray == NULL) // if dyn_array_create fails
 		{
-			fclose(fptr);
-			return NULL;
+			fclose(fptr); // close the file
+			return NULL; // load_process_control_blocks fails and returns NULL
 		}
 
-		for (uint32_t i = 0; i < numPCBs; i++)
+		for (uint32_t i = 0; i < numPCBs; i++) // for the number of processes we think are in the file
 		{
-			ProcessControlBlock_t pcb;
+			ProcessControlBlock_t pcb; // create a new pcb
 
 			if (fread(&pcb.remaining_burst_time, sizeof(uint32_t), 1, fptr) == 1 &&
 			fread(&pcb.priority, sizeof(uint32_t), 1, fptr) == 1 &&
-			fread(&pcb.arrival, sizeof(uint32_t), 1, fptr) == 1)
+			fread(&pcb.arrival, sizeof(uint32_t), 1, fptr) == 1) // read the data in the pcb struct, if all the reads were successful
 			{
-				if(dyn_array_push_back(pcbArray,&pcb) == false)
+				if(dyn_array_push_back(pcbArray,&pcb) == false) // try to put the pcb onto the array, if this fails
 				{
-					dyn_array_destroy(pcbArray);
-					fclose(fptr);
-					return NULL;
+					dyn_array_destroy(pcbArray); // clean up allocations
+					fclose(fptr); // close the file
+					return NULL; // load_process_control_blocks fails and returns NULL
 				}
 			}
-			else
+			else // reading in the data to the pcb failed
 			{
-				dyn_array_destroy(pcbArray);
-				fclose(fptr);
-				return NULL;
+				dyn_array_destroy(pcbArray); // clean up allocations
+				fclose(fptr); // close the file
+				return NULL; // load_process_control_blocks fails and returns NULL
 			}
 		}
 
+		// the following code checks that the file does not data for more than N pcbs
 		uint32_t extraData;
 
 		if (fread(&extraData, sizeof(uint32_t), 1, fptr) == 1)
 		{
 			//binary file contains more data than it should
-			dyn_array_destroy(pcbArray);
-			fclose(fptr);
-			return NULL;
+			dyn_array_destroy(pcbArray); // clean up allocations
+			fclose(fptr); // close the file
+			return NULL; // load_process_control_blocks fails and returns NULL
 		}
 		
-		fclose(fptr);
-		return pcbArray;
+		fclose(fptr); // close the file
+		return pcbArray; // if we get to here and haven't returned NULL we have successfully populated dyn_array with ProcessControlBlocks
 	}
-	else
+	else // reading for N failed
 	{
-		fclose(fptr);
-		return NULL;
+		fclose(fptr); // close the file
+		return NULL; // load_process_control_blocks fails and returns NULL
 	}
 }
 
