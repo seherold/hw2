@@ -351,62 +351,75 @@ bool round_robin(dyn_array_t *ready_queue, ScheduleResult_t *result, size_t quan
 	    }
 	    else{
 	        ProcessControlBlock_t* pcb = (ProcessControlBlock_t *)dyn_array_at(ready_queue,i); //Checks the processes and if its arrival time is less than the current time, set the current time to the fastest arrival times
-	        if (pcb->priority <= 0) // checks for bad priority
-			{
-				return false;
-			}
 			currentTime = currentTime > pcb->arrival ? pcb->arrival : currentTime;
 	    }
 	
 	}
+
+	if (dyn_array_sort(ready_queue, compareByArrival) == false) //Sorts the queue by arrival time
+	{
+		return false;
+	}
 	
-	size_t itter = 0; //Creates a itteration variable to use in the loop
+	dyn_array_t* work_queue = dyn_array_create((int)numPCB, sizeof(ProcessControlBlock_t), NULL); //Creates array to hold working elements, (these are only ones that have arrived)
+	dyn_array_t* int_queue = dyn_array_create((int)numPCB, sizeof(uint32_t), NULL); //Creates an array to hold ints that keep track of 
 	
-	while(dyn_array_size(ready_queue) != 0){ //Keeps the loop going why the size is greater than zero
 	
-	    size_t Check = dyn_array_size(ready_queue); //Gets the size of the array
-	   
+	for(size_t i = 0; i < numPCB; i++){ //Puts the first elements into the working array
+	    ProcessControlBlock_t* pcb = (ProcessControlBlock_t*)malloc(sizeof(ProcessControlBlock_t));
+	    dyn_array_extract_front(ready_queue, pcb); //gets the element
+	    if(currentTime == pcb->arrival){
 	    
-	    
-	    ProcessControlBlock_t* pcb = (ProcessControlBlock_t *)dyn_array_at(ready_queue,0); //Gets the first element
-	    
-	    if(pcb->arrival > currentTime){ //Check if its arrived so far
-	    
-	        if(itter < Check){ //If the itterator is less than check
-	        
-	        
-	            if(dyn_array_push_back(ready_queue, (void *)pcb)){ //tries to push the process in the back of the queue
-	            
-	            
-	                dyn_array_pop_front(ready_queue); //Pops the front if successful
-	                itter++; //Increment itteration
+	         if(dyn_array_push_back(work_queue, (void *)pcb)){ //tries to push the process in the back of the queue
+	         
+	                uint32_t j = 0;
+	                uint32_t *pointer = &j;
+	                if(dyn_array_push_back(int_queue, (void *)pointer)){ //tries to push the process in the back of the queue
 	                
+	                }
+	                else {
+	                
+	                    return false;
+	                
+	                }
 	            }
-	            
-	            
-	            else{ //if returning it to the queue fails, return false
-	        
+	            else{
+	       
 	                return false;
-	            }
-	        }
-	        else{//If the itterator is equal to check, meaning all processes have been checked
 	        
-	            currentTime = pcb->arrival; //Sets the current time to the current processes arrival
-	            
-	            for(size_t i = 0; i < Check; i++){ //Create a foor loop to cycle through all processes
-	            
-	                pcb = (ProcessControlBlock_t *)dyn_array_at(ready_queue,i);
-	                
-	                currentTime = currentTime > pcb->arrival ? pcb->arrival : currentTime; //Check all the processes for the earliest arrival time
-	            }
-	            itter = 0; //Reset the itterater
-	        }
+	               }
+	    
 	    }
+	    else{
+	        
+	                    if(dyn_array_push_back(ready_queue, (void *)pcb)){ //tries to push the process in the back of the queue
+	         
+	                    }
+	                    else{
+	         
+	                        return false;
+	         
+	                    }
+	    
+	                }  
+	
+	}
+	
+	
+	while(dyn_array_size(ready_queue) != 0 || dyn_array_size(work_queue) != 0){ //Keeps the loop going why the size is greater than zero
+	
+	    size_t Check = dyn_array_size(work_queue); //Gets the size of the array
+	    size_t RCheck = dyn_array_size(ready_queue); //Gets the size of the array
+	    
+	    if(Check > 0){
+	    
+	    ProcessControlBlock_t* pcb = (ProcessControlBlock_t*)malloc(sizeof(ProcessControlBlock_t));
+	    dyn_array_extract_front(work_queue, pcb); //Gets the first element
+	    uint32_t* inter = (uint32_t*)malloc(sizeof(uint32_t));
+	    dyn_array_extract_front(int_queue, inter); //Gets the first element
 	    
 	    
-	    else{//If the process has arrived
 	    
-	    itter = 0; //Reset the itterator
 	    
 	    
 	    uint32_t waitTime = 0; //Create a local wait time
@@ -419,14 +432,14 @@ bool round_robin(dyn_array_t *ready_queue, ScheduleResult_t *result, size_t quan
 	    }
 	    else{
 	    
-	        waitTime = currentTime - (pcb->arrival + (pcb->times_processed * quantum)); //Other wise wait time is current minus arrival minus the number of times processes times the quantum (C - (A + (Q*T)))
+	        waitTime = currentTime - (pcb->arrival + (*inter * quantum)); //Other wise wait time is current minus arrival minus the number of times processes times the quantum (C - (A + (Q*T)))
 	    }
+	        
 	        
 	        if(pcb->remaining_burst_time > quantum){ //If burst time is greater than the quantum
 	        
-	        pcb-> started = true; //Set the started to true
+	            pcb-> started = true; //Set the started to true
 	        
-	        pcb->times_processed++; //Increment the processes times processed
 	        
 	            for(size_t j = 0; j < quantum; j++){ //Create a for loop for times to run the CPU
 	                
@@ -434,10 +447,63 @@ bool round_robin(dyn_array_t *ready_queue, ScheduleResult_t *result, size_t quan
 	                
 		            currentTime++;//Increment the times
 		            result->total_run_time++;
+		            
+		            
+		            for(size_t p = 0; p < RCheck; p++){ //Goes through ready queue to add new arrivals
+		            
+		                ProcessControlBlock_t* pcb3 = (ProcessControlBlock_t*)malloc(sizeof(ProcessControlBlock_t));
+	                    dyn_array_extract_front(work_queue, pcb3); //Gets the first element of ready queue
+	                    if(pcb3->arrival <= currentTime){
+	                    
+	                        if(dyn_array_push_back(work_queue, (void *)pcb3)){ //tries to push the process in the back of the queue
+	         
+	                            uint32_t m = 0;
+	                            uint32_t *pointer = &m;
+	                            if(dyn_array_push_back(int_queue, (void *)pointer)){ //tries to push the process in the back of the queue
+	                
+	                            }
+	                            else {
+	                
+	                                return false;
+	                
+	                            }
+	                        }
+	                        else{
+	       
+	                            return false;
+	        
+	                        }
+	                    
+	                    }
+	                    else{
+	                    
+	                        if(dyn_array_push_back(ready_queue, (void *)pcb3)){ //tries to push the process in the back of the queue
+	                
+	                        }
+	                        else {
+	                
+	                            return false;
+	                
+	                        }
+	                    
+	                    }
+		                
+		            
+		            }
+		            
+		            
 	            }
-	            if(dyn_array_push_back(ready_queue, (void *)pcb)){ //Try to push the process back on the stack
+	            if(dyn_array_push_back(work_queue, (void *)pcb)){ //Try to push the process back on the stack
 	            
-	                dyn_array_pop_front(ready_queue); //If suceessful remove the first emelement
+	                if(dyn_array_push_back(int_queue, (void *)inter)){ //Try to push the int back on the stack
+	            
+	  
+	                }
+	                else{
+	            
+	                    return false; //If theres an error adding it back, return false;
+	                }
+	  
 	            }
 	            else{
 	            
@@ -455,17 +521,112 @@ bool round_robin(dyn_array_t *ready_queue, ScheduleResult_t *result, size_t quan
 				    
 				    currentTime++;//Increment the times
 				    result->total_run_time++;
+				    
+				    for(size_t p = 0; p < RCheck; p++){ //Goes through ready queue to add new arrivals
+		            
+		                ProcessControlBlock_t* pcb3 = (ProcessControlBlock_t*)malloc(sizeof(ProcessControlBlock_t)); 
+	                    dyn_array_extract_front(work_queue, pcb3); //Gets the first element of ready queue
+	                    if(pcb3->arrival <= currentTime){
+	                    
+	                        if(dyn_array_push_back(work_queue, (void *)pcb3)){ //tries to push the process in the back of the queue
+	         
+	                            uint32_t j = 0;
+	                            uint32_t *pointer = &j;
+	                            if(dyn_array_push_back(int_queue, (void *)pointer)){ //tries to push the process in the back of the queue
+	                
+	                            }
+	                            else {
+	                
+	                                return false;
+	                
+	                            }
+	                        }
+	                        else{
+	       
+	                            return false;
+	        
+	                        }
+	                    
+	                    }
+	                    else{
+	                    
+	                        if(dyn_array_push_back(ready_queue, (void *)pcb3)){ //tries to push the process in the back of the queue
+	                
+	                        }
+	                        else {
+	                
+	                            return false;
+	                
+	                        }
+	                    
+	                    }
+		                
+		            
+		            }
+				    
 			    }
 			    
 			    totalTurnAroundTime += currentTime - pcb->arrival; //Add the turnaround time to the result varible
 			   
 			    totalWaitingTime += waitTime; //Add the wait time to the result varible
 			    
-	            dyn_array_pop_front(ready_queue); //Remove the first element
 	            
 	        }
+	    
 	    }
-	}
+	    else{
+	    
+	            ProcessControlBlock_t* pcb = (ProcessControlBlock_t *)dyn_array_at(ready_queue,0); //Gets the first element
+	            currentTime = pcb->arrival; //Sets the current time to the current processes arrival
+	            
+	            
+	            
+	            
+	            for(size_t k = 0; k < RCheck; k++){ //Puts the first elements into the working array
+	                ProcessControlBlock_t* pcb2 = (ProcessControlBlock_t*)malloc(sizeof(ProcessControlBlock_t)); 
+	                dyn_array_extract_front(ready_queue, pcb2); //gets the element
+	                if(currentTime == pcb2->arrival){
+	    
+	                    if(dyn_array_push_back(work_queue, (void *)pcb2)){ //tries to push the process in the back of the queue
+	         
+	                        uint32_t j = 0;
+	                        uint32_t *pointer = &j;
+	                
+	                            if(dyn_array_push_back(int_queue, (void *)pointer)){ //tries to push the process in the back of the queue
+	                
+	                            }
+	                            else {
+	                
+	                                return false;
+	                
+	                            }
+	                   }
+	                    else{
+	       
+	                        return false;
+	        
+	                    }
+	    
+	                }
+	                else{
+	        
+	                    if(dyn_array_push_back(ready_queue, (void *)pcb2)){ //tries to push the process in the back of the queue
+	         
+	                    }
+	                    else{
+	         
+	                        return false;
+	         
+	                    }
+	    
+	                }  
+	
+	            }
+	    
+	    
+	    
+	        }
+	    }
 	
 	//Figure out the results
 	

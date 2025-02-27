@@ -359,7 +359,7 @@ TEST (shortest_job_first, OneProcess) // tests for just one process
 *  Tests related to burst time, not examined by previous tests
 **/
 
-TEST (priority, ProcessesWithZeroBurstTime)
+TEST (shortest_job_first, ProcessesWithZeroBurstTime)
 {
 	ProcessControlBlock_t newPCB1 = {.remaining_burst_time = 0, .priority = 1, .arrival = 0, .started = false};
 	ProcessControlBlock_t newPCB2 = {.remaining_burst_time = 0, .priority = 1, .arrival = 1, .started = false};
@@ -373,7 +373,7 @@ TEST (priority, ProcessesWithZeroBurstTime)
 	
 	ScheduleResult_t result = {.average_waiting_time = 0, .average_turnaround_time = 0, .total_run_time = 0};
 	
-	EXPECT_EQ(true,priority(ready_queue, &result));
+	EXPECT_EQ(true,shortest_job_first(ready_queue, &result));
 	
 	EXPECT_EQ(result.total_run_time, 0UL);
 	EXPECT_NEAR(result.average_waiting_time, 0.00, 0.01);
