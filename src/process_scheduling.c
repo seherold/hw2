@@ -86,13 +86,6 @@ bool first_come_first_serve(dyn_array_t *ready_queue, ScheduleResult_t *result)
 }
 
 
-int compareByBurstTime(const void *a, const void *b) // creates a custom comparator function to compare based on burst time
-{
-	ProcessControlBlock_t * PCB1 = (ProcessControlBlock_t *)a;
-	ProcessControlBlock_t * PCB2 = (ProcessControlBlock_t *)b;
-	return (PCB1->remaining_burst_time - PCB2->remaining_burst_time);
-}
-
 // Runs the Shortest Job First Scheduling algorithm over the incoming ready_queue
 // \param ready queue a dyn_array of type ProcessControlBlock_t that contain be up to N elements
 // \param result used for shortest job first stat tracking \ref ScheduleResult_t
@@ -116,15 +109,15 @@ bool shortest_job_first(dyn_array_t *ready_queue, ScheduleResult_t *result)
 		return false; // if this operation fails, scheduling algorithm fails
 	}
 
-	dyn_array_t* arrived_queue = dyn_array_create(dyn_array_size(ready_queue), sizeof(ProcessControlBlock_t), NULL); // creating an array to store all of the process that have arrived
-	if (arrived_queue == NULL) // if dyn_array_create encounters errors
-	{
-		return false; // the scheduling algorithm fails
-	}
+	int minBTIndex = -1;
+	int noProcessArrivedFlag = 1;
 
 	while (dyn_array_size(ready_queue) > 0) // while we still have processes to run
 	{
-		dyn_array_clear(arrived_queue); // starting with cleared arrived_queue, could remove items and add new items to arrival queue or we could just refill it every time
+
+		ProcessControlBlock_t* pcbWithMinBT = NULL;
+		minBTIndex = -1;
+		noProcessArrivedFlag = 1;
 
 		for (size_t i = 0; i < dyn_array_size(ready_queue); i++)
 		{
@@ -132,51 +125,27 @@ bool shortest_job_first(dyn_array_t *ready_queue, ScheduleResult_t *result)
 
 			if (currentTime >= pcb->arrival) // if a process has arrived, the current time is greater than or equal to the process arrival time
 			{
-				if(dyn_array_push_back(arrived_queue, pcb) == false) // if error in added to arrived_queue
+				if(pcbWithMinBT == NULL || pcb->remaining_burst_time < pcbWithMinBT->remaining_burst_time) // ensures that at least one process gets selected
 				{
-					dyn_array_destroy(arrived_queue); // clean up allocations
-					return false; // the scheduling algorithm fails
+					minBTIndex = i;
+					pcbWithMinBT = pcb;
+					noProcessArrivedFlag = 0;
 				}
 			}
 		}
 
-		if (dyn_array_size(arrived_queue) == 0) // if not processes have arrived
+		if (noProcessArrivedFlag)
 		{
-			ProcessControlBlock_t* pcbFirstArrived = (ProcessControlBlock_t *)dyn_array_front(ready_queue); 
-			currentTime = pcbFirstArrived->arrival; // set currentTime to the smallest arrival time you have in the ready_queue, this is the process that has arrived next, we want to start running it
+			ProcessControlBlock_t* pcbNextArrived = (ProcessControlBlock_t *)dyn_array_front(ready_queue); 
+			currentTime = pcbNextArrived->arrival; // set currentTime to the next smallest arrival time you have in the ready_queue, this is the process that has arrived next, we want to start running it
 		}
 		else // the alternative is one or more processes have arrived
 		{
-			if (dyn_array_sort(arrived_queue, compareByBurstTime) == false) // now sort the processes that have arrived by burst time, what SJF is looking at
-			{
-				dyn_array_destroy(arrived_queue); // clean up allocations on failure
-				return false; // scheduling algorithm fails
-			}
-
 			ProcessControlBlock_t processToRun; // temporary variable to hold pcb we want to run
 
-			if (dyn_array_extract_front(arrived_queue, &processToRun) == false) // the front of the arrival queue should now be the process with the shortest burst time that has arrived, if extracting this fails
+			if (dyn_array_extract(ready_queue, minBTIndex, &processToRun) == false)
 			{
-				dyn_array_destroy(arrived_queue); // clean up allocations
 				return false; // scheduling algorithm fails
-			}
-
-			// the following for loop removes the process we are about to run from ready_queue
-			for (size_t i = 0; i < dyn_array_size(ready_queue); i++)
-			{
-				ProcessControlBlock_t* pcbToRemove = (ProcessControlBlock_t *)dyn_array_at(ready_queue,i);
-
-				if (pcbToRemove->remaining_burst_time == processToRun.remaining_burst_time && 
-					pcbToRemove->priority == processToRun.priority &&
-					pcbToRemove->arrival == processToRun.arrival &&
-					pcbToRemove->started == processToRun.started) // is the process we are looking at in the ready_queue the same as the process we are about to run
-				{
-					if(dyn_array_erase(ready_queue, i)  == false) // if we find the same process, erase it, if this fails
-					{
-						dyn_array_destroy(arrived_queue); // clean up allocations
-						return false; // scheduling algorithm fails
-					}
-				}
 			}
 
 			// now we can run the process and calculate the times
@@ -194,8 +163,6 @@ bool shortest_job_first(dyn_array_t *ready_queue, ScheduleResult_t *result)
 			totalTurnAroundTime += turnAroundTime;
 		}
 	}
-
-	dyn_array_destroy(arrived_queue); // clean up allocations
 	
 	result->average_waiting_time = (float)totalWaitingTime/numPCBs;
 	result->average_turnaround_time = (float)totalTurnAroundTime/numPCBs;
@@ -204,12 +171,7 @@ bool shortest_job_first(dyn_array_t *ready_queue, ScheduleResult_t *result)
 	return true;
 }
 
-int compareByPriority(const void *a, const void *b) // creates a custom comparator function to compare based on priority
-{
-	ProcessControlBlock_t * PCB1 = (ProcessControlBlock_t *)a;
-	ProcessControlBlock_t * PCB2 = (ProcessControlBlock_t *)b;
-	return (PCB1->priority - PCB2->priority);
-}
+
 
 // Runs the Priority algorithm over the incoming ready_queue
 // \param ready queue a dyn_array of type ProcessControlBlock_t that contain be up to N elements
@@ -231,18 +193,18 @@ bool priority(dyn_array_t *ready_queue, ScheduleResult_t *result)
 
 	if (dyn_array_sort(ready_queue, compareByArrival) == false) // this will be used to get the next arrival time if there are gaps in arrival time
 	{
-		return false;
+		return false; // if this operation fails, scheduling algorithm fails
 	}
 
-	dyn_array_t* arrived_queue = dyn_array_create(dyn_array_size(ready_queue), sizeof(ProcessControlBlock_t), NULL); // creating an array to store all of the process that have arrived
-	if (arrived_queue == NULL) // if dyn_array_create encounters errors
-	{
-		return false; // the scheduling algorithm fails
-	}
+	int highestPIndex = -1;
+	int noProcessArrivedFlag = 1;
 
 	while (dyn_array_size(ready_queue) > 0) // while we still have processes to run
 	{
-		dyn_array_clear(arrived_queue); // starting with cleared arrived_queue, could remove items and add new items to arrival queue or we could just refill it every time
+
+		ProcessControlBlock_t* pcbWithMaxP = NULL;
+		highestPIndex = -1;
+		noProcessArrivedFlag = 1;
 
 		for (size_t i = 0; i < dyn_array_size(ready_queue); i++)
 		{
@@ -250,51 +212,27 @@ bool priority(dyn_array_t *ready_queue, ScheduleResult_t *result)
 
 			if (currentTime >= pcb->arrival) // if a process has arrived, the current time is greater than or equal to the process arrival time
 			{
-				if(dyn_array_push_back(arrived_queue, pcb) == false) // if error in added to arrived_queue
+				if(pcbWithMaxP == NULL || pcb->priority < pcbWithMaxP->priority) // ensures that at least one process gets selected
 				{
-					dyn_array_destroy(arrived_queue); // clean up allocations
-					return false; // the scheduling algorithm fails
+					highestPIndex = i;
+					pcbWithMaxP = pcb;
+					noProcessArrivedFlag = 0;
 				}
 			}
 		}
 
-		if (dyn_array_size(arrived_queue) == 0) // if no processes have arrived
+		if (noProcessArrivedFlag)
 		{
-			ProcessControlBlock_t* pcbFirstArrived = (ProcessControlBlock_t *)dyn_array_front(ready_queue); 
-			currentTime = pcbFirstArrived->arrival; // set currentTime to the smallest arrival time you have in the ready_queue, this is the process that has arrived next, we want to start running it
+			ProcessControlBlock_t* pcbNextArrived = (ProcessControlBlock_t *)dyn_array_front(ready_queue); 
+			currentTime = pcbNextArrived->arrival; // set currentTime to the next smallest arrival time you have in the ready_queue, this is the process that has arrived next, we want to start running it
 		}
 		else // the alternative is one or more processes have arrived
 		{
-			if (dyn_array_sort(arrived_queue, compareByPriority) == false) // now sort the processes that have arrived by priority, what priority is looking at
-			{
-				dyn_array_destroy(arrived_queue); // clean up allocations on failure
-				return false; // scheduling algorithm fails
-			}
-
 			ProcessControlBlock_t processToRun; // temporary variable to hold pcb we want to run
 
-			if (dyn_array_extract_front(arrived_queue, &processToRun) == false) // the front of the arrival queue should now be the process with the shortest burst time that has arrived, if extracting this fails
+			if (dyn_array_extract(ready_queue, highestPIndex, &processToRun) == false)
 			{
-				dyn_array_destroy(arrived_queue); // clean up allocations
 				return false; // scheduling algorithm fails
-			}
-
-			// the following for loop removes the process we are about to run from ready_queue
-			for (size_t i = 0; i < dyn_array_size(ready_queue); i++)
-			{
-				ProcessControlBlock_t* pcbToRemove = (ProcessControlBlock_t *)dyn_array_at(ready_queue,i);
-
-				if (pcbToRemove->remaining_burst_time == processToRun.remaining_burst_time && 
-					pcbToRemove->priority == processToRun.priority &&
-					pcbToRemove->arrival == processToRun.arrival &&
-					pcbToRemove->started == processToRun.started) // is the process we are looking at in the ready_queue the same as the process we are about to run
-				{
-					if(dyn_array_erase(ready_queue, i)  == false) // if we find the same process, erase it, if this fails
-					{
-						dyn_array_destroy(arrived_queue); // clean up allocations
-						return false; // scheduling algorithm fails
-					}
-				}
 			}
 
 			// now we can run the process and calculate the times
@@ -312,8 +250,6 @@ bool priority(dyn_array_t *ready_queue, ScheduleResult_t *result)
 			totalTurnAroundTime += turnAroundTime;
 		}
 	}
-
-	dyn_array_destroy(arrived_queue); // clean up allocations
 	
 	result->average_waiting_time = (float)totalWaitingTime/numPCBs;
 	result->average_turnaround_time = (float)totalTurnAroundTime/numPCBs;
