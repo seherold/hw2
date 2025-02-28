@@ -1463,7 +1463,12 @@ TEST (load_process_control_blocks, fileNULL)
 // if the file doesn't exist
 TEST (load_process_control_blocks, fileDNE) 
 {
-	EXPECT_EQ(NULL,load_process_control_blocks("fileDNE.bin"));
+	FILE *fptr = fopen("fileDNE.bin", "wb");
+	fclose(fptr);
+	dyn_array_t * pcbs = load_process_control_blocks("fileDNE.bin");
+	EXPECT_EQ(NULL,pcbs);
+	dyn_array_destroy(pcbs);
+	remove("fileDNE.bin");
 }
 
 /*

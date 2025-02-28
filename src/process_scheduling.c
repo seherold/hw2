@@ -337,7 +337,8 @@ bool round_robin(dyn_array_t *ready_queue, ScheduleResult_t *result, size_t quan
 	         
 	                    }
 	    
-	                }  
+	                }
+	   free(pcb);
 	
 	}
 	
@@ -430,7 +431,7 @@ bool round_robin(dyn_array_t *ready_queue, ScheduleResult_t *result, size_t quan
 	                    
 	                    }
 		                
-		            
+		            free(pcb3);
 		            }
 		            
 		            
@@ -503,7 +504,7 @@ bool round_robin(dyn_array_t *ready_queue, ScheduleResult_t *result, size_t quan
 	                    
 	                    }
 		                
-		            
+		            free(pcb3);
 		            }
 				    
 			    }
@@ -517,6 +518,9 @@ bool round_robin(dyn_array_t *ready_queue, ScheduleResult_t *result, size_t quan
 				//printf("\nTotal TAT: %d\n", totalTurnAroundTime);
 	            
 	        }
+	        
+	        free(pcb);
+	        free(inter);
 	    
 	    }
 	    else{
@@ -565,7 +569,7 @@ bool round_robin(dyn_array_t *ready_queue, ScheduleResult_t *result, size_t quan
 	                    }
 	    
 	                }  
-	
+	            free(pcb2);
 	            }
 	    
 	    
@@ -577,6 +581,9 @@ bool round_robin(dyn_array_t *ready_queue, ScheduleResult_t *result, size_t quan
 	
 	result->average_waiting_time = (float)totalWaitingTime/numPCB;
 	result->average_turnaround_time = (float)totalTurnAroundTime/numPCB;
+	
+	dyn_array_destroy(work_queue);
+	dyn_array_destroy(int_queue);
 	
 	return true;
 	
@@ -698,10 +705,6 @@ bool shortest_remaining_time_first(dyn_array_t *ready_queue, ScheduleResult_t *r
     //get the total time needed to run all processes and the remaining burst time for each process
     for (size_t i = 0; i < length; i++) 
     {
-        if(pcb[i].priority <= 0)
-        {
-            return false;
-        }
 		original_burst_time[i] = pcb[i].remaining_burst_time;
         result->total_run_time += pcb[i].remaining_burst_time;
     }
