@@ -314,7 +314,7 @@ bool round_robin(dyn_array_t *ready_queue, ScheduleResult_t *result, size_t quan
 	                
 	                }
 	                else {
-	                
+
 	                    return false;
 	                
 	                }
