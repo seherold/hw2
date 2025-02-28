@@ -1457,7 +1457,7 @@ TEST(shortest_remaining_time_first, BigData)
 // if the filename is NULL
 TEST (load_process_control_blocks, fileNULL) 
 {
-	EXPECT_EQ(NULL,load_process_control_blocks(NULL));
+	EXPECT_EQ(nullptr,load_process_control_blocks(nullptr));
 }
 
 // if the file doesn't exist
@@ -1655,9 +1655,6 @@ TEST (load_process_control_blocks, multipleProcesses)
 	dyn_array_destroy(array);
 	remove("test.bin");
 }
-
-// large amount of pcbs test?
-
 
 
 unsigned int score;
