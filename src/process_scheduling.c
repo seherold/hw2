@@ -337,8 +337,7 @@ bool round_robin(dyn_array_t *ready_queue, ScheduleResult_t *result, size_t quan
 	         
 	                    }
 	    
-	                }
-	   free(pcb);
+	                }  
 	
 	}
 	
@@ -431,7 +430,7 @@ bool round_robin(dyn_array_t *ready_queue, ScheduleResult_t *result, size_t quan
 	                    
 	                    }
 		                
-		            free(pcb3);
+		            
 		            }
 		            
 		            
@@ -504,7 +503,7 @@ bool round_robin(dyn_array_t *ready_queue, ScheduleResult_t *result, size_t quan
 	                    
 	                    }
 		                
-		            free(pcb3);
+		            
 		            }
 				    
 			    }
@@ -518,9 +517,6 @@ bool round_robin(dyn_array_t *ready_queue, ScheduleResult_t *result, size_t quan
 				//printf("\nTotal TAT: %d\n", totalTurnAroundTime);
 	            
 	        }
-	        
-	        free(pcb);
-	        free(inter);
 	    
 	    }
 	    else{
@@ -569,7 +565,7 @@ bool round_robin(dyn_array_t *ready_queue, ScheduleResult_t *result, size_t quan
 	                    }
 	    
 	                }  
-	            free(pcb2);
+	
 	            }
 	    
 	    
@@ -582,13 +578,11 @@ bool round_robin(dyn_array_t *ready_queue, ScheduleResult_t *result, size_t quan
 	result->average_waiting_time = (float)totalWaitingTime/numPCB;
 	result->average_turnaround_time = (float)totalTurnAroundTime/numPCB;
 	
-	dyn_array_destroy(work_queue);
-	dyn_array_destroy(int_queue);
-	
 	return true;
 	
 	
 }
+
 
 
 // Reads the PCB burst time values from the binary file into ProcessControlBlock_t remaining_burst_time field
