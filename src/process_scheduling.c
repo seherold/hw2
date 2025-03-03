@@ -278,7 +278,6 @@ bool round_robin(dyn_array_t *ready_queue, ScheduleResult_t *result, size_t quan
 	
 	size_t numPCB = dyn_array_size(ready_queue); //Counts number of processes
 	
-	
 	for(size_t i = 0; i < numPCB; i++){ //Creates a foor loop to check for null processes and set current time
 	
 	    if(dyn_array_at(ready_queue,i) == NULL){ 
@@ -291,6 +290,7 @@ bool round_robin(dyn_array_t *ready_queue, ScheduleResult_t *result, size_t quan
 	    }
 	
 	}
+
 
 	if (dyn_array_sort(ready_queue, compareByArrival) == false) //Sorts the queue by arrival time
 	{
@@ -314,13 +314,17 @@ bool round_robin(dyn_array_t *ready_queue, ScheduleResult_t *result, size_t quan
 	                
 	                }
 	                else {
-
+	                    dyn_array_destroy(work_queue);
+	                    dyn_array_destroy(int_queue);
+                        free(pcb);
 	                    return false;
 	                
 	                }
 	            }
 	            else{
-	       
+	            dyn_array_destroy(work_queue);
+	                    dyn_array_destroy(int_queue);
+	                free(pcb);
 	                return false;
 	        
 	               }
@@ -332,17 +336,20 @@ bool round_robin(dyn_array_t *ready_queue, ScheduleResult_t *result, size_t quan
 	         
 	                    }
 	                    else{
-	         
+	                    dyn_array_destroy(work_queue);
+	                    dyn_array_destroy(int_queue);
+	                        free(pcb);
 	                        return false;
 	         
 	                    }
 	    
 	                }  
-	
+	    free(pcb);
+	    pcb = NULL;
 	}
 	
-	
-	while(dyn_array_size(ready_queue) != 0 || dyn_array_size(work_queue) != 0){ //Keeps the loop going why the size is greater than zero
+	bool done = false;
+	while((!dyn_array_empty(ready_queue)|| !dyn_array_empty(work_queue)) && !done){ //Keeps the loop going why the size is greater than zero
 	
 	    size_t Check = dyn_array_size(work_queue); //Gets the size of the array
 	    size_t RCheck = dyn_array_size(ready_queue); //Gets the size of the array
@@ -371,10 +378,6 @@ bool round_robin(dyn_array_t *ready_queue, ScheduleResult_t *result, size_t quan
 	        waitTime = currentTime - (pcb->arrival + (*inter * quantum)); //Other wise wait time is current minus arrival minus the number of times processes times the quantum (C - (A + (Q*T)))
 	    }
 
-		//printf("\nCurrent time: %d\n", currentTime);
-		//printf("\nWait time: %d\n", waitTime);
-		//printf("\nRemaining burst time: %d\n", pcb->remaining_burst_time);
-		//printf("\nitter: %d\n", *inter);
 
 	        
 	        (*inter)++;
@@ -402,16 +405,23 @@ bool round_robin(dyn_array_t *ready_queue, ScheduleResult_t *result, size_t quan
 	                            uint32_t m = 0;
 	                            uint32_t *pointer = &m;
 	                            if(dyn_array_push_back(int_queue, (void *)pointer)){ //tries to push the process in the back of the queue
-	                
 	                            }
 	                            else {
-	                
+	                             dyn_array_destroy(work_queue);
+	                                dyn_array_destroy(int_queue);
+	                                free(inter);
+	                                free(pcb);
+	                                free(pcb3);         
 	                                return false;
 	                
 	                            }
 	                        }
 	                        else{
-	       
+	                            dyn_array_destroy(work_queue);
+	                                dyn_array_destroy(int_queue);
+	                                free(inter);
+	                                free(pcb);
+	                                free(pcb3);              
 	                            return false;
 	        
 	                        }
@@ -423,14 +433,19 @@ bool round_robin(dyn_array_t *ready_queue, ScheduleResult_t *result, size_t quan
 	                
 	                        }
 	                        else {
-	                
+	                             dyn_array_destroy(work_queue);
+	                                dyn_array_destroy(int_queue);
+	                                free(inter);
+	                                free(pcb);
+	                                free(pcb3);  
 	                            return false;
 	                
 	                        }
 	                    
 	                    }
 		                
-		            
+		            free(pcb3);
+		            pcb3 = NULL;
 		            }
 		            
 		            
@@ -438,17 +453,23 @@ bool round_robin(dyn_array_t *ready_queue, ScheduleResult_t *result, size_t quan
 	            if(dyn_array_push_back(work_queue, (void *)pcb)){ //Try to push the process back on the stack
 	            
 	                if(dyn_array_push_back(int_queue, (void *)inter)){ //Try to push the int back on the stack
-	            
 	  
 	                }
 	                else{
-	            
+	                                dyn_array_destroy(work_queue);
+	                                dyn_array_destroy(int_queue);
+	                                free(inter);
+	                                free(pcb);
+	                                
 	                    return false; //If theres an error adding it back, return false;
 	                }
 	  
 	            }
 	            else{
-	            
+	                                dyn_array_destroy(work_queue);
+	                                dyn_array_destroy(int_queue);
+	                                free(inter);
+	                                free(pcb);
 	                return false; //If theres an error adding it back, return false;
 	            }
 	            
@@ -475,17 +496,26 @@ bool round_robin(dyn_array_t *ready_queue, ScheduleResult_t *result, size_t quan
 	                            uint32_t j = 0;
 	                            uint32_t *pointer = &j;
 	                            if(dyn_array_push_back(int_queue, (void *)pointer)){ //tries to push the process in the back of the queue
-	                
 	                            }
 	                            else {
-	                
+	                            
+	                                
+	                                dyn_array_destroy(work_queue);
+	                                dyn_array_destroy(int_queue);
+	                                free(inter);
+	                                free(pcb);
+	                                free(pcb3);
 	                                return false;
-	                
+	                                
 	                            }
 	                        }
 	                        else{
-	       
-	                            return false;
+	                            dyn_array_destroy(work_queue);
+	                                dyn_array_destroy(int_queue);
+	                                free(inter);
+	                                free(pcb);
+	                                free(pcb3);
+	                                return false;
 	        
 	                        }
 	                    
@@ -496,14 +526,19 @@ bool round_robin(dyn_array_t *ready_queue, ScheduleResult_t *result, size_t quan
 	                
 	                        }
 	                        else {
-	                
-	                            return false;
+	                                dyn_array_destroy(work_queue);
+	                                dyn_array_destroy(int_queue);
+	                                free(inter);
+	                                free(pcb);
+	                                free(pcb3);
+	                                return false;
 	                
 	                        }
 	                    
 	                    }
 		                
-		            
+		            free(pcb3);
+		            pcb3 = NULL;
 		            }
 				    
 			    }
@@ -511,43 +546,50 @@ bool round_robin(dyn_array_t *ready_queue, ScheduleResult_t *result, size_t quan
 			    totalTurnAroundTime += currentTime - pcb->arrival; //Add the turnaround time to the result varible
 			   
 			    totalWaitingTime += waitTime; //Add the wait time to the result varible
-				//printf("\nCompletion Time: %d\n", currentTime);
-			    //printf("\nTotal Waiting Time: %d\n", totalWaitingTime);
-				//printf("\nTotal Run Time: %ld\n",  result->total_run_time);
-				//printf("\nTotal TAT: %d\n", totalTurnAroundTime);
 	            
 	        }
+	        free(inter);
+	        inter = NULL;
+	        free(pcb);
+	        pcb = NULL;
 	    
 	    }
-	    else{
+	    else{ 
+
 	    
 	            ProcessControlBlock_t* pcb = (ProcessControlBlock_t *)dyn_array_at(ready_queue,0); //Gets the first element
 	            currentTime = pcb->arrival; //Sets the current time to the current processes arrival
 	            
-	            
+	            if(currentTime != 0){
 	            
 	            
 	            for(size_t k = 0; k < RCheck; k++){ //Puts the first elements into the working array
+	            
 	                ProcessControlBlock_t* pcb2 = (ProcessControlBlock_t*)malloc(sizeof(ProcessControlBlock_t)); 
 	                dyn_array_extract_front(ready_queue, pcb2); //gets the element
 	                if(currentTime == pcb2->arrival){
 	    
+	                    
 	                    if(dyn_array_push_back(work_queue, (void *)pcb2)){ //tries to push the process in the back of the queue
 	         
 	                        uint32_t j = 0;
 	                        uint32_t *pointer = &j;
 	                
 	                            if(dyn_array_push_back(int_queue, (void *)pointer)){ //tries to push the process in the back of the queue
-	                
 	                            }
 	                            else {
-	                
+	                            
+	                                dyn_array_destroy(work_queue);
+	                                dyn_array_destroy(int_queue);
+	                                free(pcb2);
 	                                return false;
 	                
 	                            }
 	                   }
 	                    else{
-	       
+        	                        dyn_array_destroy(work_queue);
+	                                dyn_array_destroy(int_queue);
+	                                free(pcb2);
 	                        return false;
 	        
 	                    }
@@ -559,27 +601,40 @@ bool round_robin(dyn_array_t *ready_queue, ScheduleResult_t *result, size_t quan
 	         
 	                    }
 	                    else{
-	         
+	                        dyn_array_destroy(work_queue);
+	                        dyn_array_destroy(int_queue);
+	                        free(pcb2);
 	                        return false;
 	         
 	                    }
 	    
 	                }  
-	
+	                free(pcb2);
+	                pcb2 = NULL;
 	            }
-	    
-	    
-	    
-	        }
 	    }
+	    else{
+	        
+	        done = true;
+	        
+	    }
+	    
+	    
+	  }
+	}
 	
 	//Figure out the results
 	
 	result->average_waiting_time = (float)totalWaitingTime/numPCB;
 	result->average_turnaround_time = (float)totalTurnAroundTime/numPCB;
 	
+	dyn_array_destroy(work_queue);
+    dyn_array_destroy(int_queue);
+	
 	return true;
 	
+	
+	                               
 	
 }
 
